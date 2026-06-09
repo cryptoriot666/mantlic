@@ -11,7 +11,7 @@ export default function Home() {
   const { address, isConnected } = useAccount()
   const { data: balance } = useBalance({ address })
   const { sendTransaction, isPending } = useSendTransaction()
-  const [messages, setMessages] = useState<Message[]>([{ role: 'assistant', content: 'Mantlic online. What do you need?' }])
+  const [messages, setMessages] = useState<Message[]>([{ role: 'assistant', content: 'Mantlic v1.0.0 â Terminal for DeFi\n\nType commands in natural language.\n\nExamples:\n  > send 0.1 MNT to 0x123...\n  > best yield\n  > balance\n\nType help for all commands.' }])
   const [input, setInput] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
