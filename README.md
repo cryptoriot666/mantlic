@@ -37,6 +37,41 @@ Mantlic
 └── Agent Identity: ERC-8004 NFT (on-chain)
 ```
 
+## ERC-8004 Implementation
+
+Mantlic implements **ERC-8004** - the standard for AI Agent Registry on-chain identity. This enables:
+
+### Agent Identity NFT
+- Each AI agent gets a unique on-chain identity as an NFT
+- Ownership recorded on Mantle Sepolia (testnet)
+- Metadata includes agent name, creation timestamp, and decision history
+
+### On-Chain Decision Logging
+- Every agent decision is logged to the blockchain
+- Each decision records: action taken, result, confidence score
+- Creates auditable trail for agent behavior
+
+### Contract Interface
+
+```solidity
+// ERC-8004 Agent Registry
+interface IAgentRegistry {
+    function registerAgent(string memory agentName, string memory metadataURI) returns (uint256);
+    function getAgent(uint256 agentId) returns (Agent memory);
+    function logDecision(uint256 agentId, string memory action, string memory result, uint256 confidence) returns (uint256);
+    function totalAgents() returns (uint256);
+}
+```
+
+### Deployment Status
+
+| Contract | Status | Address |
+|----------|--------|---------|
+| Agent Registry | Pending Deployment | `0x0000000000000000000000000000000000000001` |
+| Decision Logger | Pending Deployment | `0x0000000000000000000000000000000000000002` |
+
+**For Judges**: See [contracts/DEPLOYMENT.md](./contracts/DEPLOYMENT.md) for step-by-step deployment instructions.
+
 ## Quick Start
 
 ```bash
