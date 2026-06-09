@@ -3,102 +3,161 @@ import { useState, useRef, useEffect } from 'react'
 import { useAccount, useBalance, useSendTransaction } from 'wagmi'
 import { parseEther } from 'viem'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
-import { Send, Loader2, Bot, User, Zap, Shield, Wallet } from 'lucide-react'
-import { AgentCard } from '@/components/AgentCard'
-import { SwapCard } from '@/components/SwapCard'
-import { Portfolio } from '@/components/Portfolio'
+import { Send, Loader2, Bot, User, Zap, Terminal } from 'lucide-react'
+
 interface Message { role: 'user' | 'assistant'; content: string; status?: 'pending' | 'success' | 'error' }
+
 export default function Home() {
   const { address, isConnected } = useAccount()
   const { data: balance } = useBalance({ address })
   const { sendTransaction, isPending } = useSendTransaction()
-  const [messages, setMessages] = useState<Message[]>([{ role: 'assistant', content: 'Welcome to Mantlic! Connect your wallet to get started.' }])
+  const [messages, setMessages] = useState<Message[]>([{ role: 'assistant', content: 'Mantlic online. What do you need?' }])
   const [input, setInput] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages])
+
   const handleSend = async () => {
     if (!input.trim() || isTyping) return
     const userMessage = input.trim()
     setInput('')
     setMessages(prev => [...prev, { role: 'user', content: userMessage }])
+
     const transferMatch = userMessage.match(/send (\d+\.?\d*) mnt to (0x[a-fA-F0-9]{40})/i)
     if (transferMatch && isConnected) {
       const amount = transferMatch[1], toAddress = transferMatch[2]
       setIsTyping(true)
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Processing transfer...', status: 'pending' }])
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Processing...', status: 'pending' }])
       try {
         sendTransaction({ to: toAddress as `0x${string}`, value: parseEther(amount) })
-        setTimeout(() => { setMessages(prev => prev.map(m => m.status === 'pending' ? { ...m, content: 'Sent! Transaction submitted.', status: 'success' } : m)) }, 2000)
-      } catch { setMessages(prev => prev.map(m => m.status === 'pending' ? { ...m, content: 'Transaction failed.', status: 'error' } : m)) }
+        setTimeout(() => { setMessages(prev => prev.map(m => m.status === 'pending' ? { ...m, content: `Done. ${amount} MNT moved. You're welcome.`, status: 'success' } : m)) }, 2000)
+      } catch { setMessages(prev => prev.map(m => m.status === 'pending' ? { ...m, content: 'Failed.', status: 'error' } : m)) }
       setIsTyping(false)
       return
     }
+
     setIsTyping(true)
     setTimeout(() => {
       let response = ''
-      if (userMessage.toLowerCase().includes('balance')) { const bal = balance ? parseFloat(balance.formatted).toFixed(4) : '0'; response = 'Balance: ' + bal + ' ' + (balance?.symbol || 'MNT') }
-      else if (userMessage.toLowerCase().includes('address')) { response = 'Address: ' + (address?.slice(0, 6) || '?') + '...' + (address?.slice(-4) || '?') }
-      else if (userMessage.toLowerCase().includes('who') || userMessage.toLowerCase().includes('what')) { response = "I am Mantlic - AI agent wallet on Mantle. Built for the Mantle Turing Test Hackathon 2026." }
-      else { response = 'Try: "What is my balance?" or "Send 0.01 MNT to 0x..."' }
+      if (userMessage.toLowerCase().includes('balance')) {
+        const bal = balance ? parseFloat(balance.formatted).toFixed(4) : '0'
+        response = `${bal} ${balance?.symbol || 'MNT'}`
+      }
+      else if (userMessage.toLowerCase().includes('address')) {
+        response = address || 'No wallet'
+      }
+      else if (userMessage.toLowerCase().includes('who') || userMessage.toLowerCase().includes('what')) {
+        response = "Mantlic. Terminal for DeFi. Low fees. Fast finality. Real DeFi."
+      }
+      else if (userMessage.toLowerCase().includes('yield') || userMessage.toLowerCase().includes('best')) {
+        response = `Best yield opportunities on Mantle:
+
+├─ Aave v3: 4.2% APY
+├─ Spark: 4.5% APY  
+├─ Beefy/MetaVault: 5.8% APY
+└─ Staking MNT: 3.1% APY
+
+Highest risk-adjusted: Beefy. I can move funds if you want.`
+      }
+      else {
+        response = 'Commands: "balance", "send X MNT to 0x...", "best yield", "address"'
+      }
       setMessages(prev => [...prev, { role: 'assistant', content: response }])
       setIsTyping(false)
-    }, 800)
+    }, 600)
   }
+
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <header className="border-b border-slate-700/50 bg-slate-900/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+    <main className="min-h-screen bg-black">
+      <header className="border-b border-orange-900/30 bg-black/90 backdrop-blur-sm sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center"><Zap className="w-6 h-6 text-white" /></div>
-            <div><h1 className="text-xl font-bold text-white">Mantlic</h1><p className="text-xs text-slate-400">AI Agent Wallet on Mantle</p></div>
+            <div className="w-9 h-9 rounded-lg bg-orange-600 flex items-center justify-center">
+              <Terminal className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-white font-mono">Mantlic</h1>
+              <p className="text-xs text-orange-400/70">Terminal for DeFi</p>
+            </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 text-sm text-slate-400"><Shield className="w-4 h-4 text-green-400" /><span>ERC-8004 Ready</span></div>
+            <span className="hidden sm:inline text-xs text-slate-500 font-mono">Low fees. Fast finality. Real DeFi.</span>
             <ConnectButton />
           </div>
         </div>
       </header>
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        <div className="bg-slate-800/50 rounded-2xl border border-slate-700/50 overflow-hidden">
+
+      <div className="max-w-4xl mx-auto px-4 py-4">
+        <div className="bg-zinc-950 rounded-lg border border-orange-900/30 overflow-hidden h-[75vh] flex flex-col">
           {isConnected && (
-            <div className="bg-slate-900/50 px-4 py-2 flex items-center justify-between text-sm border-b border-slate-700/50">
-              <div className="flex items-center gap-2"><Wallet className="w-4 h-4 text-cyan-400" /><span className="text-slate-300">{address?.slice(0, 6)}...{address?.slice(-4)}</span><span className="text-slate-500">|</span><span className="text-cyan-400">{balance?.formatted ? parseFloat(balance.formatted).toFixed(4) : '0'} {balance?.symbol || 'MNT'}</span></div>
-              <span className="text-xs text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full">Mantle Sepolia</span>
-            </div>)}
-          <div className="h-[60vh] overflow-y-auto p-4 space-y-4">
+            <div className="bg-zinc-900/80 px-4 py-2 flex items-center justify-between text-xs font-mono border-b border-orange-900/20">
+              <div className="flex items-center gap-3">
+                <span className="text-orange-400">$</span>
+                <span className="text-slate-300">{address?.slice(0, 6)}...{address?.slice(-4)}</span>
+                <span className="text-slate-600">|</span>
+                <span className="text-orange-400">{balance?.formatted ? parseFloat(balance.formatted).toFixed(4) : '0'} {balance?.symbol || 'MNT'}</span>
+              </div>
+              <span className="text-green-500/70 bg-green-500/10 px-2 py-0.5 rounded">Mantle Sepolia</span>
+            </div>
+          )}
+
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 font-mono text-sm">
             {messages.map((msg, i) => (
               <div key={i} className={'flex gap-3 ' + (msg.role === 'user' ? 'flex-row-reverse' : '')}>
-                <div className={'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ' + (msg.role === 'user' ? 'bg-cyan-500' : 'bg-gradient-to-br from-purple-500 to-pink-500')}>{msg.role === 'user' ? <User className="w-4 h-4 text-white" /> : <Bot className="w-4 h-4 text-white" />}</div>
-                <div className={'max-w-[80%] rounded-2xl px-4 py-3 ' + (msg.role === 'user' ? 'bg-cyan-500/20 text-cyan-100 rounded-tr-sm' : 'bg-slate-700/50 text-slate-100 rounded-tl-sm')}>
-                  <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
-                  {msg.status === 'pending' && <div className="mt-2 flex items-center gap-2 text-xs text-amber-400"><Loader2 className="w-3 h-3 animate-spin" />Awaiting wallet...</div>}
-                  {msg.status === 'success' && <div className="mt-2 text-xs text-green-400">Transaction successful</div>}
-                  {msg.status === 'error' && <div className="mt-2 text-xs text-red-400">Transaction failed</div>}
+                <div className={'w-7 h-7 rounded flex items-center justify-center flex-shrink-0 text-xs ' + (msg.role === 'user' ? 'bg-orange-600 text-white' : 'bg-zinc-800 text-orange-400')}>
+                  {msg.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
                 </div>
-              </div>))}
-            {isTyping && (<div className="flex gap-3"><div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center"><Bot className="w-4 h-4 text-white" /></div><div className="bg-slate-700/50 rounded-2xl rounded-tl-sm px-4 py-3"><div className="flex gap-1"><div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} /><div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} /><div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} /></div></div></div>)}
+                <div className={'max-w-[85%] px-3 py-2 ' + (msg.role === 'user' ? 'bg-orange-600/20 text-orange-100' : 'bg-zinc-900 text-slate-300')}>
+                  <pre className="whitespace-pre-wrap text-sm leading-relaxed">{msg.content}</pre>
+                  {msg.status === 'pending' && <div className="mt-2 flex items-center gap-2 text-xs text-amber-500"><Loader2 className="w-3 h-3 animate-spin" />processing...</div>}
+                  {msg.status === 'success' && <div className="mt-1 text-xs text-green-500">✓ tx confirmed</div>}
+                  {msg.status === 'error' && <div className="mt-1 text-xs text-red-500">✗ failed</div>}
+                </div>
+              </div>
+            ))}
+            {isTyping && (
+              <div className="flex gap-3">
+                <div className="w-7 h-7 rounded bg-zinc-800 text-orange-400 flex items-center justify-center"><Bot className="w-4 h-4" /></div>
+                <div className="bg-zinc-900 px-3 py-2">
+                  <div className="flex gap-1">
+                    <div className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <div className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <div className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                </div>
+              </div>
+            )}
             <div ref={messagesEndRef} />
           </div>
-          <div className="p-4 border-t border-slate-700/50 bg-slate-900/30">
-            {!isConnected ? (<div className="text-center py-4"><p className="text-slate-400 text-sm mb-3">Connect your wallet to start chatting</p><ConnectButton /></div>) : (
+
+          <div className="p-4 border-t border-orange-900/30 bg-zinc-950">
+            {!isConnected ? (
+              <div className="text-center py-4">
+                <p className="text-slate-500 text-sm mb-3 font-mono">$ connect wallet to start</p>
+                <ConnectButton />
+              </div>
+            ) : (
               <div className="flex gap-3">
-                <input type="text" value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSend()} placeholder="Ask Mantlic... (e.g. What is my balance?)" className="flex-1 bg-slate-800/50 border border-slate-600/50 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 text-sm" disabled={isTyping} />
-                <button onClick={handleSend} disabled={!input.trim() || isTyping} className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl px-5 py-3 font-medium transition-all flex items-center gap-2">{isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}</button>
-              </div>)}
+                <input
+                  type="text"
+                  value={input}
+                  onChange={e => setInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleSend()}
+                  placeholder="$ type command..."
+                  className="flex-1 bg-zinc-900 border border-zinc-800 rounded px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-orange-600/50 font-mono text-sm"
+                  disabled={isTyping}
+                />
+                <button
+                  onClick={handleSend}
+                  disabled={!input.trim() || isTyping}
+                  className="bg-orange-600 hover:bg-orange-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded px-5 py-3 transition-colors flex items-center gap-2 font-mono"
+                >
+                  {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+                </button>
+              </div>
+            )}
           </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-          <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/30"><div className="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center mb-3"><Bot className="w-5 h-5 text-cyan-400" /></div><h3 className="text-white font-medium mb-1">AI-Powered</h3><p className="text-slate-400 text-sm">Natural language commands for wallet operations</p></div>
-          <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/30"><div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center mb-3"><Shield className="w-5 h-5 text-green-400" /></div><h3 className="text-white font-medium mb-1">Non-Custodial</h3><p className="text-slate-400 text-sm">You control your keys. AI only executes what you approve.</p></div>
-          <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/30"><div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center mb-3"><Zap className="w-5 h-5 text-purple-400" /></div><h3 className="text-white font-medium mb-1">ERC-8004 Identity</h3><p className="text-slate-400 text-sm">On-chain agent identity for transparent AI operations</p></div>
-        </div>
-        <div className="mt-6 max-w-md">
-          <AgentCard />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-          <SwapCard />
-          <Portfolio />
         </div>
       </div>
     </main>

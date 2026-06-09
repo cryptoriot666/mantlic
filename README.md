@@ -1,36 +1,30 @@
-# Mantlic - AI Agent Wallet on Mantle
+# Mantlic — Terminal for DeFi
 
-> Conversational AI agent wallet for Mantle. Click, chat, done.
+> One chat. Every protocol. No fluff.
 
 [![Hackathon](https://img.shields.io/badge/Mantle-Turing%20Test%20Hackathon%202026-00AEEF?style=for-the-badge)](https://dorahacks.io)
-[![Track](https://img.shields.io/badge/Track-Agentic%20Wallets%20%26%20Economy-purple?style=flat-square)](https://dorahacks.io)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 
 ## What is Mantlic?
 
-Mantlic is an AI-powered agent wallet that lets users manage their Mantle crypto holdings through natural conversation. Instead of navigating complex DeFi interfaces, users simply tell Mantlic what they want to do.
+Mantlic is a terminal-style interface for DeFi on Mantle. No flashy graphics. No marketing speak. Just commands.
 
 **Demo: [mantlic.vercel.app](https://mantlic.vercel.app)**
 
-## Features
+## Philosophy
 
-### 🤖 AI-Powered Chat Interface
-Natural language commands for wallet operations. "What's my balance?", "Send 0.1 MNT to 0x...", "Show my address"
+- **Direct**: Ask. Execute. Done.
+- **Fast**: Low fees. Fast finality. Real DeFi.
+- **Honest**: No fluff. No promises. Just data.
 
-### 💱 DeFi Swap Interface
-Swap MNT for other tokens directly from the chat interface. Integrated with DEX aggregators for best rates.
+## Commands
 
-### 📊 Portfolio Dashboard
-Track your DeFi positions and total portfolio value in real-time on Mantle Sepolia.
-
-### 🔐 Non-Custodial Security
-You control your keys. Every transaction requires explicit wallet confirmation.
-
-### 🏷️ ERC-8004 Agent Identity
-Every AI agent gets a unique on-chain identity NFT, establishing reputation and tracking transaction history permanently on Mantle.
-
-### 🔗 Mantle Native
-Built for Mantle L2 - low fees, fast confirmations, EVM compatible.
+```
+$ balance          → your MNT balance
+$ send 0.01 MNT to 0x... → transfer
+$ yield            → best DeFi yields
+$ address          → your wallet address
+```
 
 ## Architecture
 
@@ -45,56 +39,30 @@ Mantlic
 
 ## Quick Start
 
-\`\`\`bash
-# Clone the repo
+```bash
+# Clone and install
 git clone https://github.com/YOUR_USERNAME/mantlic.git
 cd mantlic
-
-# Install dependencies
 npm install
 
-# Copy environment variables
+# Configure
 cp .env.example .env.local
-# Edit .env.local and add your OPENAI_API_KEY
+# Add OPENAI_API_KEY to .env.local
 
-# Run development server
+# Run
 npm run dev
 # Open http://localhost:3000
-
-# Build for production
-npm run build
-\`\`\`
+```
 
 ## Environment Variables
 
-\`\`\`env
+```env
 # Required
-OPENAI_API_KEY=sk-...          # OpenAI API key for AI chat
+OPENAI_API_KEY=sk-...          # OpenAI API key
 
 # Optional  
-NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=...  # WalletConnect project ID
-\`\`\`
-
-## How It Works
-
-1. **Connect Wallet** - Click "Connect Wallet" and select MetaMask or WalletConnect
-2. **Chat with Mantlic** - Ask questions or give commands in natural language
-3. **Confirm Transactions** - Every write transaction requires wallet signature
-4. **Agent Identity** - Mint your AI agent as an on-chain ERC-8004 NFT
-
-### Supported Commands
-
-- \`What's my balance?\` - Check wallet MNT balance
-- \`Send 0.01 MNT to 0x...\` - Transfer MNT to any address  
-- \`Show my address\` - Display wallet address
-- \`Who are you?\` - Learn about Mantlic
-
-## Hackathon Submission
-
-- **Track**: Agentic Wallets & Economy
-- **Event**: Mantle Turing Test Hackathon 2026
-- **Prize Pool**: $120,000 USD
-- **Deadline**: Submit via [DoraHacks](https://dorahacks.io)
+NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=...  # WalletConnect
+```
 
 ## Tech Stack
 
@@ -105,25 +73,12 @@ NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=...  # WalletConnect project ID
 | Wallet | wagmi v2 + RainbowKit |
 | Blockchain | viem + Mantle SDK |
 | AI | OpenAI GPT-4o-mini |
-| Streaming | Vercel AI SDK |
 | Hosting | Vercel |
-
-## Key Innovations
-
-1. **Conversational DeFi** - First AI agent wallet on Mantle with natural language interface
-2. **ERC-8004 Compliance** - On-chain agent identity standard for transparent AI operations
-3. **Non-Custodial Safety** - User keys never leave wallet; AI only proposes, user approves
-
-## Screenshots
-
-```
-[Connect Wallet] → [Chat with AI] → [Confirm Transaction] → [Done]
-```
 
 ## License
 
-MIT License - see [LICENSE](./LICENSE)
+MIT - see [LICENSE](./LICENSE)
 
 ---
 
-Built with 💜 for the Mantle Turing Test Hackathon 2026
+Built for the Mantle Turing Test Hackathon 2026
