@@ -5,6 +5,8 @@ import { parseEther } from 'viem'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { Send, Loader2, Bot, User, Zap, Shield, Wallet } from 'lucide-react'
 import { AgentCard } from '@/components/AgentCard'
+import { SwapCard } from '@/components/SwapCard'
+import { Portfolio } from '@/components/Portfolio'
 interface Message { role: 'user' | 'assistant'; content: string; status?: 'pending' | 'success' | 'error' }
 export default function Home() {
   const { address, isConnected } = useAccount()
@@ -93,6 +95,10 @@ export default function Home() {
         </div>
         <div className="mt-6 max-w-md">
           <AgentCard />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+          <SwapCard />
+          <Portfolio />
         </div>
       </div>
     </main>

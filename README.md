@@ -17,6 +17,12 @@ Mantlic is an AI-powered agent wallet that lets users manage their Mantle crypto
 ### 🤖 AI-Powered Chat Interface
 Natural language commands for wallet operations. "What's my balance?", "Send 0.1 MNT to 0x...", "Show my address"
 
+### 💱 DeFi Swap Interface
+Swap MNT for other tokens directly from the chat interface. Integrated with DEX aggregators for best rates.
+
+### 📊 Portfolio Dashboard
+Track your DeFi positions and total portfolio value in real-time on Mantle Sepolia.
+
 ### 🔐 Non-Custodial Security
 You control your keys. Every transaction requires explicit wallet confirmation.
 
