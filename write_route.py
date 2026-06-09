@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+content = '''import { NextRequest, NextResponse } from 'next/server'
 import { streamText } from 'ai'
 import { deepseek } from '@ai-sdk/deepseek'
 
@@ -28,7 +28,13 @@ export async function POST(req: NextRequest) {
     model: deepseek('deepseek-chat'),
     system: SYSTEM_PROMPT + `\n\nUser wallet: ${userAddress}`,
     messages,
+    maxTokens: 500,
   })
 
-  return result.toTextStreamResponse()
+  return result.toDataStreamResponse()
 }
+'''
+
+with open('src/app/api/chat/route.ts', 'w') as f:
+    f.write(content)
+print('Written successfully')
