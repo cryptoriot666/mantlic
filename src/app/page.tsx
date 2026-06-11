@@ -2,9 +2,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAccount, useBalance } from 'wagmi'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
-import { Terminal, Send, Bot, User, Activity, Cpu, Database, TrendingUp, Loader2, Zap, ChevronRight, X, RefreshCw, ExternalLink } from 'lucide-react'
+import { Terminal, Send, Bot, User, Activity, Cpu, Database, TrendingUp, Loader2, Zap, ChevronRight, X, RefreshCw, ExternalLink, Sparkles, Shield, Zap as ZapIcon, Globe } from 'lucide-react'
 import { useAgentMemory } from '../hooks/useAgentMemory'
 import { parseCommand } from '../commands/parser'
+import { ViralCard } from '../components/ViralCard'
 
 interface Message {
   id: string
@@ -301,6 +302,46 @@ Type "help" for available commands or ask me anything about DeFi on Mantle.`,
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
   
+  // GSAP ScrollTrigger for scroll animations
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    
+    const initGSAP = async () => {
+      try {
+        const gsap = (await import('gsap')).default
+        const ScrollTrigger = (await import('gsap/ScrollTrigger')).default
+        gsap.registerPlugin(ScrollTrigger)
+        
+        // Animate scroll-reveal elements
+        const revealElements = document.querySelectorAll('.scroll-reveal')
+        revealElements.forEach((el) => {
+          ScrollTrigger.create({
+            trigger: el,
+            start: 'top 80%',
+            onEnter: () => el.classList.add('revealed'),
+            once: true,
+          })
+        })
+        
+        // Stagger animate on scroll
+        const staggerElements = document.querySelectorAll('.stagger-children')
+        staggerElements.forEach((el) => {
+          ScrollTrigger.create({
+            trigger: el,
+            start: 'top 80%',
+            onEnter: () => el.classList.add('visible'),
+            once: true,
+          })
+        })
+        
+ } catch (error) {
+        console.warn('GSAP not available:', error)
+      }
+    }
+    
+    initGSAP()
+  }, [])
+  
   const sendMessage = async (content: string) => {
     if (!content.trim()) return
     
@@ -438,6 +479,9 @@ Type "help" for available commands or ask me anything about DeFi on Mantle.`,
             {/* Agent Card */}
             <AgentCard stats={agentStats} />
             
+            {/* Viral Card - shown when connected */}
+            {isConnected && <ViralCard />}
+            
             {/* Command Help */}
             <CommandHelp />
             
@@ -525,6 +569,35 @@ Type "help" for available commands or ask me anything about DeFi on Mantle.`,
             </div>
             <div className="mt-2 text-center text-xs text-gray-600 font-mono">
               Press Enter to send • Type "help" for commands
+            </div>
+          </div>
+          
+          {/* Features Section */}
+          <div className="border-t border-[#00ff88]/20 bg-[#0a0a0f] py-8 px-4">
+            <div className="max-w-4xl mx-auto">
+              <h2 className="text-center text-sm font-mono text-[#00ff88] mb-6 scroll-reveal">FEATURES</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
+                <div className="card-hover bg-[#0f0f15] rounded-lg border border-[#00ff88]/20 p-4 text-center">
+                  <Sparkles className="w-8 h-8 text-[#00ff88] mx-auto mb-2" />
+                  <h3 className="font-bold text-white text-sm mb-1">AI Commands</h3>
+                  <p className="text-xs text-gray-500">Natural language to DeFi actions</p>
+                </div>
+                <div className="card-hover bg-[#0f0f15] rounded-lg border border-[#00ff88]/20 p-4 text-center">
+                  <Shield className="w-8 h-8 text-[#00ff88] mx-auto mb-2" />
+                  <h3 className="font-bold text-white text-sm mb-1">ERC-8004</h3>
+                  <p className="text-xs text-gray-500">On-chain agent identity</p>
+                </div>
+                <div className="card-hover bg-[#0f0f15] rounded-lg border border-[#00ff88]/20 p-4 text-center">
+                  <ZapIcon className="w-8 h-8 text-[#00ff88] mx-auto mb-2" />
+                  <h3 className="font-bold text-white text-sm mb-1">1inch Swap</h3>
+                  <p className="text-xs text-gray-500">Best price aggregation</p>
+                </div>
+                <div className="card-hover bg-[#0f0f15] rounded-lg border border-[#00ff88]/20 p-4 text-center">
+                  <Globe className="w-8 h-8 text-[#00ff88] mx-auto mb-2" />
+                  <h3 className="font-bold text-white text-sm mb-1">Mantle</h3>
+                  <p className="text-xs text-gray-500">Fast& cheap L2</p>
+                </div>
+              </div>
             </div>
           </div>
         </main>
