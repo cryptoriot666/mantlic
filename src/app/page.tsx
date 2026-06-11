@@ -24,111 +24,200 @@ interface AgentStats {
   totalInteractions: number
 }
 
-// THREE.JS Particle Background
-function ParticleBackground() {
+// THREE.JS Hero Section with geometric shapes, mouse parallax, and teal palette
+function HeroSection() {
   const containerRef = useRef<HTMLDivElement>(null)
+  const mouseRef = useRef({ x: 0, y: 0 })
   
   useEffect(() => {
     if (typeof window === 'undefined') return
     
-    let animationId: number
-    let scene: any, camera: any, renderer: any, particles: any
+    // Mobile/low-end detection: use CSS fallback
+    const isMobile = window.innerWidth < 768 || 
+      /Android|iPhone|iPad/i.test(navigator.userAgent) ||
+      (navigator.hardwareConcurrency && navigator.hardwareConcurrency < 4)
     
-    const initThree = async () => {
+    if (isMobile) return // CSS handles the fallback
+    
+    let animId: number
+    let scene: any, camera: any, renderer: any, group: any
+    let ico: any, particles: any
+    
+    let cleanupFn: (() => void) | undefined
+    
+    const init = async () => {
       try {
         const THREE = await import('three')
-        
         if (!containerRef.current) return
         
         scene = new THREE.Scene()
-        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
-        renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true })
-        
+        camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000)
+        renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false, powerPreference: 'low-power' })
         renderer.setSize(window.innerWidth, window.innerHeight)
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)) // cap at 1.5 for performance
         containerRef.current.appendChild(renderer.domElement)
         
-        // Create particles
-        const particleCount = 500
-        const geometry = new THREE.BufferGeometry()
-        const positions = new Float32Array(particleCount * 3)
-        const colors = new Float32Array(particleCount * 3)
+        // Group for parallax
+        group = new THREE.Group()
+        scene.add(group)
         
-        for (let i = 0; i < particleCount; i++) {
-          positions[i * 3] = (Math.random() - 0.5) * 50
-          positions[i * 3 + 1] = (Math.random() - 0.5) * 50
-          positions[i * 3 + 2] = (Math.random() - 0.5) * 50
-          
-          // Green tint for particles
-          colors[i * 3] = 0
-          colors[i * 3 + 1] = 1
-          colors[i * 3 + 2] = 0.53
+        // Floating icosahedron wireframe (teal)
+        const geo = new THREE.IcosahedronGeometry(3, 0)
+        const mat = new THREE.MeshBasicMaterial({ 
+          color: 0x00d4aa, wireframe: true, transparent: true, opacity: 0.3 
+        })
+        ico = new THREE.Mesh(geo, mat)
+        ico.position.set(0, 0, -5)
+        group.add(ico)
+        
+        // Small floating cubes
+        const cubeGeo = new THREE.BoxGeometry(0.3, 0.3, 0.3)
+        const cubeMat = new THREE.MeshBasicMaterial({ color: 0x00ff88, transparent: true, opacity: 0.4 })
+        for (let i = 0; i < 20; i++) {
+          const cube = new THREE.Mesh(cubeGeo, cubeMat)
+          cube.position.set(
+            (Math.random() - 0.5) * 20,
+            (Math.random() - 0.5) * 15,
+            (Math.random() - 0.5) * 10 - 5
+          )
+          cube.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0)
+          cube.userData.rotSpeed = { x: (Math.random() - 0.5) * 0.01, y: (Math.random() - 0.5) * 0.01 }
+          group.add(cube)
         }
         
-        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
-        
-        const material = new THREE.PointsMaterial({
-          size: 0.1,
-          vertexColors: true,
-          transparent: true,
-          opacity: 0.6,
-          blending: THREE.AdditiveBlending,
-        })
-        
-        particles = new THREE.Points(geometry, material)
+        // Teal particle field
+        const particleCount = 200
+        const pGeo = new THREE.BufferGeometry()
+        const pPos = new Float32Array(particleCount * 3)
+        const pColors = new Float32Array(particleCount * 3)
+        for (let i = 0; i < particleCount; i++) {
+          pPos[i * 3] = (Math.random() - 0.5) * 40
+          pPos[i * 3 + 1] = (Math.random() - 0.5) * 30
+          pPos[i * 3 + 2] = (Math.random() - 0.5) * 20
+          // Mantle teal/cyan palette
+          pColors[i * 3] = 0
+          pColors[i * 3 + 1] = 0.7 + Math.random() * 0.3
+          pColors[i * 3 + 2] = 0.6 + Math.random() * 0.4
+        }
+        pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3))
+        pGeo.setAttribute('color', new THREE.BufferAttribute(pColors, 3))
+        const pMat = new THREE.PointsMaterial({ size: 0.08, vertexColors: true, transparent: true, opacity: 0.5 })
+        particles = new THREE.Points(pGeo, pMat)
         scene.add(particles)
         
-        camera.position.z = 20
+        camera.position.z = 15
         
-        // Mouse interaction
-        let mouseX = 0, mouseY = 0
-        const handleMouseMove = (e: MouseEvent) => {
-          mouseX = (e.clientX / window.innerWidth) * 2 - 1
-          mouseY = -(e.clientY / window.innerHeight) * 2 + 1
+        // Mouse parallax
+        const onMouseMove = (e: MouseEvent) => {
+          mouseRef.current.x = (e.clientX / window.innerWidth - 0.5) * 2
+          mouseRef.current.y = (e.clientY / window.innerHeight - 0.5) * 2
         }
-        window.addEventListener('mousemove', handleMouseMove)
+        window.addEventListener('mousemove', onMouseMove)
         
+        // Animate
         const animate = () => {
-          animationId = requestAnimationFrame(animate)
+          animId = requestAnimationFrame(animate)
           
-          if (particles) {
-            particles.rotation.x += 0.0005
-            particles.rotation.y += 0.0008
+          // Rotate icosahedron
+          if (ico) {
+            ico.rotation.x += 0.002
+            ico.rotation.y += 0.003
+          }
+          
+          // Rotate cubes
+          if (group) {
+            group.children.forEach((child: any) => {
+              if (child.geometry?.type === 'BoxGeometry') {
+                child.rotation.x += child.userData.rotSpeed.x
+                child.rotation.y += child.userData.rotSpeed.y
+              }
+            })
             
-            // Mouse interaction
-            particles.rotation.x += mouseY * 0.0003
-            particles.rotation.y += mouseX * 0.0003
+            // Subtle parallax (max ±5px)
+            group.position.x += (mouseRef.current.x * 2 - group.position.x) * 0.02
+            group.position.y += (-mouseRef.current.y * 1.5 - group.position.y) * 0.02
+          }
+          
+          // Rotate particle field slowly
+          if (particles) {
+            particles.rotation.y += 0.0003
           }
           
           renderer.render(scene, camera)
         }
         animate()
         
-        const handleResize = () => {
+        // Resize handler
+        const onResize = () => {
+          if (!camera || !renderer) return
           camera.aspect = window.innerWidth / window.innerHeight
           camera.updateProjectionMatrix()
           renderer.setSize(window.innerWidth, window.innerHeight)
         }
-        window.addEventListener('resize', handleResize)
+        window.addEventListener('resize', onResize)
         
+        cleanupFn = () => {
+          window.removeEventListener('mousemove', onMouseMove)
+          window.removeEventListener('resize', onResize)
+        }
       } catch (error) {
-        console.warn('Three.js not available:', error)
+        console.warn('Three.js initialization failed:', error)
       }
     }
     
-    initThree()
+    init()
     
     return () => {
-      cancelAnimationFrame(animationId)
+      cancelAnimationFrame(animId)
+      cleanupFn?.()
       if (containerRef.current && renderer?.domElement) {
         containerRef.current.removeChild(renderer.domElement)
       }
       if (renderer) renderer.dispose()
+      if (scene) {
+        scene.traverse((obj: any) => {
+          if (obj.geometry) obj.geometry.dispose()
+          if (obj.material) {
+            if (Array.isArray(obj.material)) obj.material.forEach((m: any) => m.dispose())
+            else obj.material.dispose()
+          }
+        })
+      }
     }
   }, [])
   
-  return <div ref={containerRef} className="fixed inset-0 -z-10" />
+  return (
+    <div 
+      ref={containerRef} 
+      className="fixed inset-0 -z-10 three-fallback" 
+      aria-hidden="true"
+    />
+  )
+}
+
+// Ripple effect hook
+function useRipple() {
+  const createRipple = useCallback((event: React.MouseEvent<HTMLElement>) => {
+    const button = event.currentTarget
+    const rect = button.getBoundingClientRect()
+    const ripple = document.createElement('span')
+    const size = Math.max(rect.width, rect.height)
+    const x = event.clientX - rect.left - size / 2
+    const y = event.clientY - rect.top - size / 2
+    
+    ripple.style.width = ripple.style.height = `${size}px`
+    ripple.style.left = `${x}px`
+    ripple.style.top = `${y}px`
+    ripple.classList.add('ripple-effect')
+    
+    button.appendChild(ripple)
+    
+    setTimeout(() => {
+      ripple.remove()
+    }, 600)
+  }, [])
+  
+  return createRipple
 }
 
 // Agent Card Component
@@ -251,7 +340,7 @@ function CommandHelp() {
         <div className="flex items-center gap-2 text-gray-400">
           <ChevronRight className="w-3 h-3 text-[#00ff88]" />
           <span className="text-[#00ff88]">register agent</span>
-          <span className="text-gray-500">&lt;name&gt;</span>
+          <span className="text-gray-500">{'<name>'}</span>
         </div>
         <div className="flex items-center gap-2 text-gray-400">
           <ChevronRight className="w-3 h-3 text-[#00ff88]" />
@@ -267,6 +356,7 @@ export default function Home() {
   const { address, isConnected } = useAccount()
   const { data: mntBalance } = useBalance({ address })
   const { memories, remember, recall } = useAgentMemory(address)
+  const createRipple = useRipple()
   
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -304,42 +394,68 @@ Type "help" for available commands or ask me anything about DeFi on Mantle.`,
   
   // GSAP ScrollTrigger for scroll animations
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    let gsap: any, ScrollTrigger: any
     
     const initGSAP = async () => {
       try {
-        const gsap = (await import('gsap')).default
-        const ScrollTrigger = (await import('gsap/ScrollTrigger')).default
+        const gsapModule = await import('gsap')
+        gsap = gsapModule.gsap || gsapModule.default
+        const scrollTriggerModule = await import('gsap/ScrollTrigger')
+        ScrollTrigger = scrollTriggerModule.ScrollTrigger
+        
+        if (typeof window === 'undefined' || !gsap || !ScrollTrigger) return
+        
         gsap.registerPlugin(ScrollTrigger)
         
-        // Animate scroll-reveal elements
-        const revealElements = document.querySelectorAll('.scroll-reveal')
-        revealElements.forEach((el) => {
-          ScrollTrigger.create({
-            trigger: el,
-            start: 'top 80%',
-            onEnter: () => el.classList.add('revealed'),
-            once: true,
-          })
+        // Scroll reveal for .scroll-reveal elements
+        document.querySelectorAll('.scroll-reveal').forEach((el) => {
+          gsap.fromTo(el, 
+            { opacity: 0, y: 30, scale: 0.95 },
+            {
+              opacity: 1, y: 0, scale: 1,
+              duration: 0.7,
+              ease: 'power3.out',
+              scrollTrigger: { trigger: el, start: 'top 85%', once: true }
+            }
+          )
         })
         
-        // Stagger animate on scroll
-        const staggerElements = document.querySelectorAll('.stagger-children')
-        staggerElements.forEach((el) => {
-          ScrollTrigger.create({
-            trigger: el,
-            start: 'top 80%',
-            onEnter: () => el.classList.add('visible'),
-            once: true,
-          })
+        // Stagger children
+        document.querySelectorAll('.stagger-children').forEach((el) => {
+          const children = el.children
+          gsap.fromTo(children, 
+            { opacity: 0, y: 15 },
+            {
+              opacity: 1, y: 0,
+              duration: 0.4,
+              stagger: 0.1,
+              ease: 'power2.out',
+              scrollTrigger: { trigger: el, start: 'top 85%', once: true }
+            }
+          )
         })
         
- } catch (error) {
+        // Number counters
+        document.querySelectorAll('.counter').forEach((el) => {
+          const target = parseInt(el.getAttribute('data-target') || '0')
+          gsap.fromTo(el, { innerText: 0 }, {
+            innerText: target,
+            duration: 1.5,
+            ease: 'power2.out',
+            snap: { innerText: 1 },
+            scrollTrigger: { trigger: el, start: 'top 85%', once: true }
+          })
+        })
+      } catch (error) {
         console.warn('GSAP not available:', error)
       }
     }
     
     initGSAP()
+    
+    return () => {
+      if (ScrollTrigger) ScrollTrigger.getAll().forEach((t: any) => t.kill())
+    }
   }, [])
   
   const sendMessage = async (content: string) => {
@@ -410,7 +526,7 @@ Type "help" for available commands or ask me anything about DeFi on Mantle.`,
   
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white">
-      <ParticleBackground />
+      <HeroSection />
       
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 px-4 py-3 bg-gradient-to-b from-black/90 to-transparent border-b border-[#00ff88]/20">
@@ -488,15 +604,15 @@ Type "help" for available commands or ask me anything about DeFi on Mantle.`,
             {/* Quick Actions */}
             <div className="mt-4 space-y-2">
               <button 
-                onClick={() => sendMessage('balance')}
-                className="w-full py-2 px-3 rounded bg-[#0f0f15] border border-[#00ff88]/20 hover:border-[#00ff88]/50 text-left text-sm font-mono transition-colors flex items-center gap-2"
+                onClick={(e) => { createRipple(e); sendMessage('balance'); }}
+                className="w-full py-2 px-3 rounded bg-[#0f0f15] border border-[#00ff88]/20 hover:border-[#00ff88]/50 text-left text-sm font-mono transition-colors flex items-center gap-2 ripple-container btn-glow"
               >
                 <TrendingUp className="w-4 h-4 text-[#00ff88]" />
                 Check Balance
               </button>
               <button 
-                onClick={() => sendMessage('yield')}
-                className="w-full py-2 px-3 rounded bg-[#0f0f15] border border-[#00ff88]/20 hover:border-[#00ff88]/50 text-left text-sm font-mono transition-colors flex items-center gap-2"
+                onClick={(e) => { createRipple(e); sendMessage('yield'); }}
+                className="w-full py-2 px-3 rounded bg-[#0f0f15] border border-[#00ff88]/20 hover:border-[#00ff88]/50 text-left text-sm font-mono transition-colors flex items-center gap-2 ripple-container btn-glow"
               >
                 <Activity className="w-4 h-4 text-[#00ff88]" />
                 Compare Yields
@@ -553,9 +669,9 @@ Type "help" for available commands or ask me anything about DeFi on Mantle.`,
                 disabled={isLoading}
               />
               <button
-                onClick={() => sendMessage(input)}
+                onClick={(e) => { createRipple(e); sendMessage(input); }}
                 disabled={!input.trim() || isLoading}
-                className="px-6 py-3 rounded-lg bg-[#00ff88] text-black font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#00cc6a] transition-colors flex items-center gap-2"
+                className="px-6 py-3 rounded-lg bg-[#00ff88] text-black font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#00cc6a] transition-colors flex items-center gap-2 ripple-container btn-glow"
               >
                 {isLoading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -572,9 +688,27 @@ Type "help" for available commands or ask me anything about DeFi on Mantle.`,
             </div>
           </div>
           
-          {/* Features Section */}
+          {/* Stats Section */}
           <div className="border-t border-[#00ff88]/20 bg-[#0a0a0f] py-8 px-4">
             <div className="max-w-4xl mx-auto">
+              <h2 className="text-center text-sm font-mono text-[#00ff88] mb-6 scroll-reveal">STATS</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12 stagger-children">
+                {[
+                  { value: 37, label: 'POINTS POTENTIAL', suffix: '' },
+                  { value: 24, label: 'TESTS PASSING', suffix: '' },
+                  { value: 3, label: 'SMART CONTRACTS', suffix: '' },
+                  { value: 5000, label: 'MAX TPS', suffix: '+' },
+                ].map((stat, i) => (
+                  <div key={i} className="text-center p-4">
+                    <div className="text-3xl md:text-4xl font-black text-[#00ff88] font-mono counter" data-target={stat.value}>
+                      {stat.value}{stat.suffix}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1 font-mono">{stat.label}</div>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Features Section */}
               <h2 className="text-center text-sm font-mono text-[#00ff88] mb-6 scroll-reveal">FEATURES</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
                 <div className="card-hover bg-[#0f0f15] rounded-lg border border-[#00ff88]/20 p-4 text-center">
@@ -602,56 +736,6 @@ Type "help" for available commands or ask me anything about DeFi on Mantle.`,
           </div>
         </main>
       </div>
-      
-      {/* CSS Animations */}
-      <style jsx global>{`
-        @keyframes messageSlideIn {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        .animate-message {
-          animation: messageSlideIn 0.3s ease-out forwards;
-          opacity: 0;
-        }
-        
-        @keyframes gridPulse {
-          0%, 100% { opacity: 0.05; }
-          50% { opacity: 0.1; }
-        }
-        
-        @keyframes scanLine {
-          0% { transform: translateY(-100%); }
-          100% { transform: translateY(100vh); }
-        }
-        
-        body {
-          overflow-x: hidden;
-        }
-        
-        ::-webkit-scrollbar {
-          width: 6px;
-        }
-        
-        ::-webkit-scrollbar-track {
-          background: #0a0a0f;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-          background: #00ff88/30;
-          border-radius: 3px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-          background: #00ff88/50;
-        }
-      `}</style>
     </div>
   )
 }
