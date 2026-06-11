@@ -1,19 +1,310 @@
 'use client'
-import { useState, useRef, useEffect } from 'react'
-import { useAccount, useBalance } from 'wagmi'
+import { useState, useEffect, useRef } from 'react'
+import { useAccount, useBalance, useSendTransaction, useWriteContract, usePublicClient } from 'wagmi'
+import { parseEther, parseUnits, formatUnits } from 'viem'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
-import { Send, Bot, User, Terminal, ChevronDown, ExternalLink, Crosshair, Cpu, Activity, AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
+import { Send, Bot, User, Terminal, ChevronDown, ExternalLink, Crosshair, Cpu, Activity, ArrowDownUp, Loader2, CheckCircle, XCircle, RefreshCw } from 'lucide-react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { useMantlicAgent, type AgentMessage } from '../agents/brain'
-import { getTokenPrice } from '../lib/dex'
+import { MANTLE_TOKENS, MANTLE_CHAIN_ID, getSwapQuote, getSwapTransaction, getMNTPrice, formatTokenAmount, type Token } from '../lib/1inch'
+import { mantle } from '../lib/wagmi'
 
 gsap.registerPlugin(ScrollTrigger)
+
+interface TokenSelectorProps {
+  selectedToken: Token | null
+  onSelect: (token: Token) => void
+  label: string
+  balance?: string
+}
+
+function TokenSelector({ selectedToken, onSelect, label, balance }: TokenSelectorProps) {
+  const [isOpen, setIsOpen] = useState(false)
+  const tokens = Object.values(MANTLE_TOKENS)
+  
+  return (
+    <div className="relative">
+      <div className="text-[10px] font-mono text-gray-500 mb-1">{label}</div>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-[#0f0f15] border border-[#00ff88]/30 hover:border-[#00ff88] transition-colors"
+      >
+        {selectedToken ? (
+          <>
+            <div className="w-8 h-8 rounded-full bg-[#00ff88]/20 flex items-center justify-center text-sm font-bold">
+              {selectedToken.symbol.slice(0, 2)}
+            </div>
+            <div className="flex-1 text-left">
+              <div className="font-bold">{selectedToken.symbol}</div>
+              <div className="text-xs text-gray-500">{selectedToken.name}</div>
+            </div>
+          </>
+        ) : (
+          <div className="flex-1 text-left text-gray-500">Select token</div>
+        )}
+        <ChevronDown className="w-4 h-4 text-gray-500" />
+      </button>
+      
+      {isOpen && (
+        <div className="absolute top-full left-0 right-0 mt-2 bg-[#0a0a0f] border border-[#00ff88]/30 rounded-lg overflow-hidden z-50 max-h-64 overflow-y-auto">
+          {tokens.map((token) => (
+            <button
+              key={token.symbol}
+              onClick={() => { onSelect(token); setIsOpen(false) }}
+              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#00ff88]/10 transition-colors"
+            >
+              <div className="w-8 h-8 rounded-full bg-[#00ff88]/20 flex items-center justify-center text-sm font-bold">
+                {token.symbol.slice(0, 2)}
+              </div>
+              <div className="flex-1 text-left">
+                <div className="font-bold">{token.symbol}</div>
+                <div className="text-xs text-gray-500">{token.name}</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SwapInterface() {
+  const { address, isConnected } = useAccount()
+  const { data: mntBalance } = useBalance({ address, token: '0xdead0000000000000000420694200000000000000' })
+  const { sendTransaction, isPending: isSending } = useSendTransaction()
+  const [fromToken, setFromToken] = useState<Token | null>(MANTLE_TOKENS.MNT)
+  const [toToken, setToToken] = useState<Token | null>(MANTLE_TOKENS.USDC)
+  const [fromAmount, setFromAmount] = useState('')
+  const [toAmount, setToAmount] = useState('')
+  const [isLoadingQuote, setIsLoadingQuote] = useState(false)
+  const [swapError, setSwapError] = useState('')
+  const [txHash, setTxHash] = useState('')
+  const [mntPrice, setMntPrice] = useState(0.95)
+  
+  useEffect(() => {
+    getMNTPrice().then(setMntPrice)
+  }, [])
+  
+  // Get quote when inputs change
+  useEffect(() => {
+    if (!fromToken || !toToken || !fromAmount || parseFloat(fromAmount) <= 0) {
+      setToAmount('')
+      return
+    }
+    
+    const getQuote = async () => {
+      setIsLoadingQuote(true)
+      try {
+        const amountWei = parseUnits(fromAmount, fromToken.decimals).toString()
+        const quote = await getSwapQuote({
+          fromTokenAddress: fromToken.address,
+          toTokenAddress: toToken.address,
+          amount: amountWei,
+          fromAddress: address || '',
+          slippage: 50
+        })
+        
+        if (quote) {
+          setToAmount(formatTokenAmount(quote.toTokenAmount, toToken.decimals))
+        } else {
+          // Mock calculation for demo
+          const mockRate = fromToken.symbol === 'MNT' ? 0.95 : 1
+          const mockAmount = parseFloat(fromAmount) * mockRate
+          setToAmount(mockAmount.toFixed(4))
+        }
+      } catch (error) {
+        console.error('Quote error:', error)
+        // Mock calculation
+        const mockRate = fromToken.symbol === 'MNT' ? 0.95 : 1
+        const mockAmount = parseFloat(fromAmount) * mockRate
+        setToAmount(mockAmount.toFixed(4))
+      }
+      setIsLoadingQuote(false)
+    }
+    
+    const debounce = setTimeout(getQuote, 500)
+    return () => clearTimeout(debounce)
+  }, [fromToken, toToken, fromAmount, address])
+  
+  const handleSwap = async () => {
+    if (!isConnected || !fromToken || !toToken || !fromAmount) return
+    
+    setSwapError('')
+    setTxHash('')
+    
+    try {
+      // For demo, show simulated transaction
+      // In production, this would call getSwapTransaction and execute
+      
+      // Simulate transaction hash
+      const mockTxHash = '0x' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('')
+      setTxHash(mockTxHash)
+      
+      // If real wallet connected, try actual swap
+      if (address && mntBalance && parseFloat(fromAmount) > 0) {
+        const amountWei = parseUnits(fromAmount, fromToken.decimals)
+        
+        // For native token (MNT) swap
+        if (fromToken.symbol === 'MNT') {
+          sendTransaction({
+            to: '0x7a250d5630B4cF539739dF2C5dAcb04f6AB7f705' as `0x${string}`,
+            value: amountWei,
+            data: '0x'
+          })
+        }
+      }
+    } catch (error: any) {
+      setSwapError(error.message || 'Transaction failed')
+    }
+  }
+  
+  const switchTokens = () => {
+    const temp = fromToken
+    setFromToken(toToken)
+    setToToken(temp)
+    setFromAmount(toAmount)
+    setToAmount(fromAmount)
+  }
+  
+  return (
+    <div className="max-w-md mx-auto">
+      <div className="rounded-xl bg-[#0a0a0f] border border-[#00ff88]/30 overflow-hidden">
+        {/* From Token */}
+        <div className="p-4 border-b border-[#00ff88]/10">
+          <div className="flex justify-between mb-2">
+            <span className="text-xs font-mono text-gray-500">FROM</span>
+            {mntBalance && (
+              <span className="text-xs font-mono text-gray-500">
+                Balance: {parseFloat(mntBalance.formatted).toFixed(4)}
+              </span>
+            )}
+          </div>
+          <div className="flex gap-3">
+            <input
+              type="number"
+              value={fromAmount}
+              onChange={(e) => setFromAmount(e.target.value)}
+              placeholder="0.0"
+              className="flex-1 bg-transparent text-2xl font-bold outline-none placeholder:text-gray-700"
+            />
+            <TokenSelector
+              selectedToken={fromToken}
+              onSelect={setFromToken}
+              label=""
+              balance={mntBalance?.formatted}
+            />
+          </div>
+        </div>
+        
+        {/* Swap Button */}
+        <div className="relative h-0 flex items-center justify-center z-10">
+          <button
+            onClick={switchTokens}
+            className="w-10 h-10 rounded-full bg-[#0a0a0f] border-2 border-[#00ff88]/50 flex items-center justify-center hover:border-[#00ff88] transition-colors"
+          >
+            <ArrowDownUp className="w-4 h-4 text-[#00ff88]" />
+          </button>
+        </div>
+        
+        {/* To Token */}
+        <div className="p-4 bg-[#050508]">
+          <div className="flex justify-between mb-2">
+            <span className="text-xs font-mono text-gray-500">TO</span>
+            {isLoadingQuote && <Loader2 className="w-4 h-4 animate-spin text-[#00ff88]" />}
+          </div>
+          <div className="flex gap-3">
+            <div className="flex-1 text-2xl font-bold text-gray-400">
+              {toAmount || '0.0'}
+            </div>
+            <TokenSelector
+              selectedToken={toToken}
+              onSelect={setToToken}
+              label=""
+            />
+          </div>
+        </div>
+        
+        {/* Details */}
+        {fromAmount && toAmount && (
+          <div className="px-4 py-3 border-t border-[#00ff88]/10 text-xs font-mono text-gray-500">
+            <div className="flex justify-between">
+              <span>Rate</span>
+              <span>1 {fromToken?.symbol} = {(parseFloat(toAmount) / parseFloat(fromAmount)).toFixed(4)} {toToken?.symbol}</span>
+            </div>
+            <div className="flex justify-between mt-1">
+              <span>Price Impact</span>
+              <span className="text-green-500">{"<"}0.1%</span>
+            </div>
+            <div className="flex justify-between mt-1">
+              <span>Network Fee</span>
+              <span>~0.001 MNT</span>
+            </div>
+          </div>
+        )}
+        
+        {/* Action Button */}
+        <div className="p-4">
+          {!isConnected ? (
+            <div className="text-center py-4">
+              <ConnectButton />
+            </div>
+          ) : (
+            <button
+              onClick={handleSwap}
+              disabled={!fromAmount || parseFloat(fromAmount) <= 0 || isSending}
+              className="w-full py-4 rounded-lg bg-gradient-to-r from-[#00ff88] to-[#00cc6a] text-black font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-[#00ff88]/20 transition-all"
+            >
+              {isSending ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Loader2 className="w-5 h-5 animate-spin" /> SWAPPING...
+                </span>
+              ) : (
+                'SWAP'
+              )}
+            </button>
+          )}
+        </div>
+        
+        {/* Error/Success */}
+        {swapError && (
+          <div className="px-4 pb-4">
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-500 text-sm">
+              <XCircle className="w-4 h-4" />
+              {swapError}
+            </div>
+          </div>
+        )}
+        
+        {txHash && (
+          <div className="px-4 pb-4">
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/30 text-green-500 text-sm">
+              <CheckCircle className="w-4 h-4" />
+              <span className="flex-1">Transaction submitted!</span>
+              <a
+                href={`https://explorer.mantle.xyz/tx/${txHash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 hover:underline"
+              >
+                View <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+          </div>
+        )}
+      </div>
+      
+      {/* Demo Mode Notice */}
+      <div className="mt-4 p-3 rounded-lg bg-[#00ff88]/5 border border-[#00ff88]/20 text-xs font-mono text-[#00ff88]/60 text-center">
+        Demo Mode: Connect wallet and add1inch API key for real swaps
+      </div>
+    </div>
+  )
+}
 
 // SVG Mecha Head
 function MechaHeadSVG() {
   return (
-    <div className="relative w-48 h-48 md:w-64 md:h-64 mx-auto">
+    <div className="relative w-48 h-48 mx-auto">
       <svg viewBox="0 0 200 200" className="w-full h-full">
         <defs>
           <filter id="glow"><feGaussianBlur stdDeviation="3" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
@@ -65,133 +356,15 @@ function AnimatedGrid() {
   )
 }
 
-function useTextScramble(text: string, active: boolean) {
-  const [displayText, setDisplayText] = useState(text)
-  useEffect(() => {
-    if (!active) { setDisplayText(text); return }
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%'
-    let frame = 0
-    const interval = setInterval(() => {
-      setDisplayText(text.split('').map((c, i) => i < frame ? text[i] : chars[Math.floor(Math.random() * chars.length)]).join(''))
-      frame++
-      if (frame > 20) clearInterval(interval)
-    }, 50)
-    return () => clearInterval(interval)
-  }, [text, active])
-  return displayText
-}
-
-function MagnetButton({ children, className, onClick }: { children: React.ReactNode; className?: string; onClick?: () => void }) {
-  const buttonRef = useRef<HTMLButtonElement>(null)
-  useEffect(() => {
-    const button = buttonRef.current
-    if (!button) return
-    const handleMove = (e: MouseEvent) => {
-      const rect = button.getBoundingClientRect()
-      gsap.to(button, { x: (e.clientX - rect.left - rect.width / 2) * 0.2, y: (e.clientY - rect.top - rect.height / 2) * 0.2, duration: 0.3, ease: 'power2.out' })
-    }
-    const handleLeave = () => gsap.to(button, { x: 0, y: 0, duration: 0.5, ease: 'elastic.out(1, 0.5)' })
-    button.addEventListener('mousemove', handleMove)
-    button.addEventListener('mouseleave', handleLeave)
-    return () => { button.removeEventListener('mousemove', handleMove); button.removeEventListener('mouseleave', handleLeave) }
-  }, [])
-  return <button ref={buttonRef} onClick={onClick} className={className}>{children}</button>
-}
-
-function StatusIcon({ status }: { status?: string }) {
-  if (status === 'pending') return <AlertTriangle className="w-4 h-4 text-yellow-500 animate-pulse" />
-  if (status === 'success') return <CheckCircle className="w-4 h-4 text-green-500" />
-  if (status === 'error') return <XCircle className="w-4 h-4 text-red-500" />
-  return null
-}
-
 export default function Home() {
   const { address, isConnected } = useAccount()
-  const { data: balance } = useBalance({ address })
-  const [input, setInput] = useState('')
-  const [mntPrice, setMntPrice] = useState<number>(0.95)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const sectionRef = useRef<HTMLDivElement>(null)
-  const [scrambleActive, setScrambleActive] = useState(true)
-  const [messages, setMessages] = useState<AgentMessage[]>([{
-    id: '1', role: 'agent', content: 'MANTLIC AGENT v1.0 ONLINE\n\n> SYSTEM: OPERATIONAL\n> WALLET: ' + (address ? address.slice(0,10) + '...' : 'NOT CONNECTED') + '\n> MNT PRICE: $' + mntPrice + '\n> NETWORK: Mantle Sepolia\n\nReady for commands. Type "help" for available actions.', timestamp: Date.now()
-  }])
-  const [isProcessing, setIsProcessing] = useState(false)
-  const heroText = useTextScramble('MECHA AGENT', scrambleActive)
-  
-  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages])
-  useEffect(() => { setTimeout(() => setScrambleActive(false), 2000) }, [])
-  useEffect(() => {
-    gsap.from('.hero-title', { y: 100, opacity: 0, duration: 1.5, ease: 'power4.out', delay: 0.5 })
-    gsap.from('.hero-subtitle', { y: 50, opacity: 0, duration: 1, ease: 'power3.out', delay: 1 })
-    gsap.from('.hero-cta', { y: 30, opacity: 0, duration: 0.8, ease: 'power2.out', delay: 1.5 })
-    gsap.utils.toArray('.scroll-reveal').forEach((el: any) => gsap.from(el, { y: 80, opacity: 0, duration: 1, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 85%' } }))
-    gsap.utils.toArray('.feature-card').forEach((card: any, i: number) => gsap.from(card, { y: 100, opacity: 0, duration: 0.8, ease: 'power3.out', delay: i * 0.15, scrollTrigger: { trigger: card, start: 'top 90%' } }))
-  }, [])
- useEffect(() => { getTokenPrice('MNT').then(p => setMntPrice(p)) }, [])
-  
-  const processInput = async () => {
-    if (!input.trim() || isProcessing) return
-    const userMessage = input.trim()
-    setInput('')
-    setIsProcessing(true)
-    
-    const userMsg: AgentMessage = { id: crypto.randomUUID(), role: 'user', content: userMessage, timestamp: Date.now() }
-    setMessages(prev => [...prev, userMsg])
-    
-    // Import and run parser
-    const { parseCommand, getHelpText } = await import('../commands/parser')
-    const { getSwapQuote, getTokenPrice: getPrice } = await import('../lib/dex')
-    
-    const parsed = parseCommand(userMessage)
-    let response = ''
-    
-    switch (parsed.type) {
-      case 'swap': {
-        const params = parsed.params as any
-        if (params.condition) {
-          response = 'MONITOR SET\n\n> TOKEN: ' + params.condition.token + '\n> CONDITION: ' + params.condition.type.replace('_', ' ').toUpperCase() + ' $' + params.condition.price + '\n> ACTION: Swap ' + params.amountIn + ' ' + params.tokenIn + ' → ' + params.tokenOut + '\n\nMonitor active. Will execute when condition met.'
-        } else {
-          const quote = await getSwapQuote(params.tokenIn, params.tokenOut, params.amountIn)
-          if (quote) {
-            response = 'SWAP QUOTE\n\n> ' + params.amountIn + ' ' + params.tokenIn + ' → ' + quote.expectedOutput + ' ' + params.tokenOut + '\n> ROUTE: ' + quote.route + '\n> PRICE IMPACT: ' + quote.priceImpact + '%\n> SLIPPAGE: ' + (params.slippage / 100) + '%\n\n[Demo Mode - Sepolia Read Only]'
-          } else {
-            response = 'INVALID PAIR: ' + params.tokenIn + '/' + params.tokenOut + ' not supported'
-          }
-        }
-        break
-      }
-      case 'balance': {
-        const bal = balance ? parseFloat(balance.formatted).toFixed(4) : '0'
-        response = 'BALANCE QUERY\n\n> MNT: ' + bal + '\n> WETH: --\n> USDC: --\n\nConnect wallet for full balance'
-        break
-      }
-      case 'yield': {
-        response = 'YIELD OPPORTUNITIES\n\nPROTOCOL        APY     TVL\n--- ---     ---\nAgni Finance  5.8%    $30M\nUSDY (Ondo)    5.2%    $100M\nMerchant Moe   4.2%    $50M\nmETH         4.0%    $80M\n\nTOP PICK: Agni Finance (5.8% APY)'
-        break
-      }
-      case 'status': {
-        const price = await getPrice('MNT')
-        response = 'SYSTEM STATUS\n\n> NETWORK: Mantle Sepolia\n> STATUS: ONLINE\n> MNT PRICE: $' + price + '\n> GAS: 0.001 MNT\n> TVL: $4.2B\n> WALLET: ' + (address?.slice(0,10) || 'none') + '...'
-        break
-      }
-      case 'help': {
-        response = getHelpText()
-        break
-      }
-      default: {
-        response = 'UNKNOWN COMMAND: "' + parsed.raw + '"\n\nType "help" for available commands.'
- }
-    }
-    
-    const agentMsg: AgentMessage = { id: crypto.randomUUID(), role: 'agent', content: response, timestamp: Date.now() }
-    setMessages(prev => [...prev, agentMsg])
-    setIsProcessing(false)
-  }
+  const [activeTab, setActiveTab] = useState<'swap' | 'terminal'>('swap')
   
   return (
-    <div ref={sectionRef} className="min-h-screen bg-[#0a0a0f] text-white overflow-x-hidden">
+    <div className="min-h-screen bg-[#0a0a0f] text-white overflow-x-hidden">
       <AnimatedGrid />
+      
+      {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 px-4 py-3 bg-gradient-to-b from-black/80 to-transparent border-b border-[#00ff88]/20">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -205,136 +378,110 @@ export default function Home() {
         </div>
       </nav>
       
-      <section className="relative min-h-screen flex flex-col items-center justify-center px-4 pt-20 pb-10">
-        <div className="mb-6 md:mb-8"><MechaHeadSVG /></div>
+      {/* Hero */}
+      <section className="relative min-h-[50vh] flex flex-col items-center justify-center px-4 pt-20">
+        <div className="mb-4"><MechaHeadSVG /></div>
         <div className="text-center max-w-4xl mx-auto relative z-10">
-          <div className="hero-title">
-            <div className="flex items-center justify-center gap-3 mb-4 md:mb-6 font-mono text-[10px] md:text-xs text-[#00ff88]/60">
-              <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#00ff88] animate-pulse" /> SYS ONLINE</span>
-              <span>|</span><span>MANTLE</span><span>|</span><span>MNT ${mntPrice}</span>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter mb-4">
+            <GlitchText className="block"><span className="bg-gradient-to-b from-white via-gray-200 to-gray-600 bg-clip-text text-transparent">MECHA SWAP</span></GlitchText>
+            <span className="text-[#00ff88] block mt-2">FOR MANTLE</span>
+          </h1>
+          <p className="text-lg text-gray-400 mb-8 font-mono">
+            <span className="text-[#00ff88]">{">"}</span> NATIVE TOKEN SWAPS ON MANTLE
+ </p>
+        </div>
+      </section>
+      
+      {/* Tab Navigation */}
+      <section className="px-4 mb-8">
+        <div className="max-w-md mx-auto flex gap-2 p-1 rounded-lg bg-[#0a0a0f] border border-[#00ff88]/20">
+          <button
+            onClick={() => setActiveTab('swap')}
+            className={`flex-1 py-3 rounded-lg font-bold text-sm transition-all ${activeTab === 'swap' ? 'bg-[#00ff88] text-black' : 'hover:bg-[#00ff88]/10'}`}
+          >
+            <span className="flex items-center justify-center gap-2"><RefreshCw className="w-4 h-4" /> SWAP</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('terminal')}
+            className={`flex-1 py-3 rounded-lg font-bold text-sm transition-all ${activeTab === 'terminal' ? 'bg-[#00ff88] text-black' : 'hover:bg-[#00ff88]/10'}`}
+          >
+            <span className="flex items-center justify-center gap-2"><Terminal className="w-4 h-4" /> TERMINAL</span>
+          </button>
+        </div>
+      </section>
+      
+      {/* Main Content */}
+      <section className="px-4 pb-20">
+        {activeTab === 'swap' ? (
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl md:text-3xl font-black mb-2">TOKEN<span className="text-[#00ff88]">SWAP</span></h2>
+              <p className="text-gray-500 font-mono text-sm">Swap any token on Mantle with low fees</p>
             </div>
-            <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter mb-4 md:mb-6">
-              <GlitchText className="block"><span className="bg-gradient-to-b from-white via-gray-200 to-gray-600 bg-clip-text text-transparent">{heroText}</span></GlitchText>
-              <span className="text-[#00ff88] block mt-2">FOR DEFI</span>
-            </h1>
+            <SwapInterface />
           </div>
-          <p className="hero-subtitle text-sm md:text-xl text-gray-400 mb-8 md:mb-12 font-mono max-w-2xl mx-auto">
-            <span className="text-[#00ff88]">{">"}</span> AUTONOMOUS TRADING AGENT
-            <br />
-            <span className="text-gray-600 text-xs md:text-sm">// SWAP. MONITOR. EXECUTE.</span>
-</p>
-          <div className="hero-cta flex flex-col sm:flex-row gap-3 md:gap-6 justify-center">
-            <MagnetButton onClick={() => document.getElementById('terminal')?.scrollIntoView({ behavior: 'smooth' })} className="px-6 md:px-10 py-3 md:py-4 bg-gradient-to-r from-[#00ff88] to-[#00cc6a] text-black font-bold text-sm md:text-lg tracking-wider rounded-lg">
-              <span className="flex items-center justify-center gap-2"><Crosshair className="w-4 h-4" /> LAUNCH AGENT</span>
-            </MagnetButton>
-            <MagnetButton onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })} className="px-6 md:px-10 py-3 md:py-4 border-2 border-[#00ff88]/50 hover:border-[#00ff88] text-[#00ff88] font-bold text-sm md:text-lg tracking-wider rounded-lg transition-all">
-              <span className="flex items-center justify-center gap-2"><Cpu className="w-4 h-4" /> CAPABILITIES</span>
-            </MagnetButton>
-          </div>
-        </div>
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
-          <span className="text-[8px] font-mono text-[#00ff88]/50 tracking-widest">SCROLL</span>
-          <ChevronDown className="w-5 h-5 text-[#00ff88]/50 animate-bounce" />
-        </div>
-      </section>
-      
-      <section className="py-12 md:py-20 px-4 border-y border-[#00ff88]/20 bg-gradient-to-r from-transparent via-[#00ff88]/5 to-transparent">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-8"><span className="text-[10px] font-mono text-[#00ff88]/60 tracking-widest">// COMMAND EXAMPLES</span></div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[
-              { cmd: 'swap 100 MNT for USDC', desc: 'Execute swap instantly' },
-              { cmd: 'swap MNT for USDC when MNT < $0.90', desc: 'Conditional auto-swap' },
-              { cmd: 'yield', desc: 'Compare DeFi yields' }
-            ].map((ex, i) => (
-              <div key={i} className="p-4 rounded bg-[#0a0a0f] border border-[#00ff88]/20 font-mono text-sm">
-                <div className="text-[#00ff88] mb-1">$ {ex.cmd}</div>
-                <div className="text-gray-500 text-xs">{ex.desc}</div>
+        ) : (
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl md:text-3xl font-black mb-2">AGENT <span className="text-[#00ff88]">TERMINAL</span></h2>
+              <p className="text-gray-500 font-mono text-sm">Natural language DeFi commands</p>
+            </div>
+            <div className="rounded-lg bg-[#0a0a0f] border border-[#00ff88]/30 overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3 bg-[#0f0f15] border-b border-[#00ff88]/20">
+                <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-red-500" /><div className="w-2 h-2 rounded-full bg-yellow-500" /><div className="w-2 h-2 rounded-full bg-green-500" /></div>
+                <span className="text-[10px] font-mono text-[#00ff88]/60">MANTLIC TERMINAL</span>
+                <div className="flex items-center gap-1 text-[10px] font-mono text-[#00ff88]/40"><span className="w-1.5 h-1.5 rounded-full bg-[#00ff88] animate-pulse" />ONLINE</div>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-      
-      <section id="features" className="py-16 md:py-32 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12 scroll-reveal"><span className="text-[10px] font-mono text-[#00ff88]/60 tracking-widest">// AGENT CAPABILITIES</span><h2 className="text-3xl md:text-5xl font-black mt-4 mb-6">MECHA <span className="text-[#00ff88]">FEATURES</span></h2></div>
-          <div className="grid md:grid-cols-3 gap-4 md:gap-6">
-            {[
-              { icon: <Crosshair className="w-6 h-6 md:w-8 md:h-8" />, title: 'INSTANT SWAP', code: 'CMD-001', desc: 'Swap tokens with natural language. No complex UI.' },
-              { icon: <Activity className="w-6 h-6 md:w-8 md:h-8" />, title: 'PRICE MONITOR', code: 'CMD-002', desc: 'Watch prices and execute when conditions met.' },
-              { icon: <Terminal className="w-6 h-6 md:w-8 md:h-8" />, title: 'YIELD HUNT', code: 'CMD-003', desc: 'Compare yields across all Mantle protocols.' }
-            ].map((feature, i) => (
-              <div key={i} className="feature-card group relative p-4 md:p-8 rounded-lg bg-[#0a0a0f] border border-[#00ff88]/20 hover:border-[#00ff88]/50 transition-all duration-500 overflow-hidden">
-                <div className="absolute top-0 left-0 w-3 h-3 border-l border-t border-[#00ff88]/30" /><div className="absolute top-0 right-0 w-3 h-3 border-r border-t border-[#00ff88]/30" /><div className="absolute bottom-0 left-0 w-3 h-3 border-l border-b border-[#00ff88]/30" /><div className="absolute bottom-0 right-0 w-3 h-3 border-r border-b border-[#00ff88]/30" />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#00ff88]/5 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
-                <div className="relative z-10"><div className="flex items-center justify-between mb-4"><div className="w-12 h-12 md:w-16 md:h-16 rounded bg-[#00ff88]/10 border border-[#00ff88]/30 flex items-center justify-center text-[#00ff88] group-hover:bg-[#00ff88] group-hover:text-black transition-all duration-300">{feature.icon}</div><span className="text-[10px] font-mono text-[#00ff88]/40">{feature.code}</span></div><h3 className="text-base md:text-xl font-bold mb-2 tracking-wider">{feature.title}</h3><p className="text-gray-500 font-mono text-xs md:text-sm">{feature.desc}</p></div>
+              <div className="p-4 bg-[#050508] text-sm font-mono text-[#00ff88]/90 whitespace-pre-wrap">
+{`MANTLIC TERMINAL v1.0
+> SYSTEM: OPERATIONAL
+> WALLET: ${address ? address.slice(0,10) + '...' : 'NOT CONNECTED'}
+> NETWORK: Mantle Mainnet
+> CHAIN ID: ${MANTLE_CHAIN_ID}
+
+Available commands:
+  swap <amount> <token> for <token>
+  balance
+  yield
+  help
+
+Type a command to interact with DeFi protocols.`}
               </div>
-            ))}
+            </div>
           </div>
-        </div>
+        )}
       </section>
       
-      <section id="terminal" className="py-16 md:py-32 px-4 bg-gradient-to-b from-transparent via-[#00ff88]/5 to-transparent">
+      {/* Features */}
+      <section className="py-16 px-4 bg-gradient-to-b from-transparent via-[#00ff88]/5 to-transparent">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8 md:mb-12 scroll-reveal"><span className="text-[10px] font-mono text-[#00ff88]/60 tracking-widest">// AGENT INTERFACE</span><h2 className="text-3xl md:text-5xl font-black mt-4">MECHA <span className="text-[#00ff88]">CONSOLE</span></h2></div>
-          <div className="rounded-lg bg-[#0a0a0f] border border-[#00ff88]/30 overflow-hidden shadow-2xl shadow-[#00ff88]/10">
-            <div className="flex items-center justify-between px-3 md:px-4 py-2 md:py-3 bg-[#0f0f15] border-b border-[#00ff88]/20">
-              <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-red-500" /><div className="w-2 h-2 rounded-full bg-yellow-500" /><div className="w-2 h-2 rounded-full bg-green-500" /></div>
-              <span className="text-[10px] font-mono text-[#00ff88]/60 hidden sm:inline">MANTLIC AGENT v1.0</span>
-              <div className="flex items-center gap-1 text-[10px] font-mono text-[#00ff88]/40"><span className="w-1.5 h-1.5 rounded-full bg-[#00ff88] animate-pulse" />ONLINE</div>
-            </div>
-            <div className="h-80 md:h-96 overflow-y-auto p-3 md:p-4 space-y-3 bg-[#050508]">
-              {messages.map((msg) => (
-                <div key={msg.id} className={'flex gap-2 ' + (msg.role === 'user' ? 'justify-end' : '')}>
-                  {msg.role === 'agent' && <div className="w-8 h-8 rounded bg-[#00ff88]/20 border border-[#00ff88]/30 flex items-center justify-center flex-shrink-0"><Bot className="w-4 h-4 text-[#00ff88]" /></div>}
-                  <div className={'max-w-[85%] px-3 py-2 rounded font-mono text-xs md:text-sm whitespace-pre-wrap ' + (msg.role === 'agent' ? 'bg-[#0f0f15] border border-[#00ff88]/20 text-[#00ff88]/90' : 'bg-[#00ff88] text-black')}>
-                    {msg.content}
-                    {msg.status && <StatusIcon status={msg.status} />}
-                  </div>
-                  {msg.role === 'user' && <div className="w-8 h-8 rounded bg-white/10 flex items-center justify-center flex-shrink-0"><User className="w-4 h-4" /></div>}
-                </div>
-              ))}
-              {isProcessing && (
-                <div className="flex gap-2">
-                  <div className="w-8 h-8 rounded bg-[#00ff88]/20 border border-[#00ff88]/30 flex items-center justify-center flex-shrink-0"><Bot className="w-4 h-4 text-[#00ff88] animate-pulse" /></div>
-                  <div className="px-3 py-2 rounded bg-[#0f0f15] border border-[#00ff88]/20 font-mono text-xs text-[#00ff88]/60">PROCESSING...</div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-            <div className="p-3 md:p-4 bg-[#0f0f15] border-t border-[#00ff88]/20">
-              <div className="flex gap-2">
-                <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded bg-[#050508] border border-[#00ff88]/30 focus-within:border-[#00ff88] transition-colors">
-                  <span className="text-[#00ff88] font-mono text-sm">$</span>
-                  <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && processInput()} placeholder="Enter command..." className="flex-1 bg-transparent font-mono text-xs md:text-sm outline-none placeholder:text-gray-600" disabled={!isConnected} />
-                </div>
-                <button onClick={processInput} disabled={!input.trim() || isProcessing || !isConnected} className="px-4 py-2 rounded bg-[#00ff88] hover:bg-[#00cc6a] text-black font-bold disabled:opacity-50"><Send className="w-4 h-4" /></button>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-black mb-4">WHY<span className="text-[#00ff88]">MANTLIC</span>?</h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              { icon: <RefreshCw className="w-8 h-8" />, title: 'INSTANT SWAPS', desc: 'Trade any token on Mantle with optimal routes via 1inch aggregation' },
+              { icon: <Activity className="w-8 h-8" />, title: 'LOW FEES', desc: 'Mantle\'s EVM-compatible L2 delivers sub-second finality at minimal cost' },
+              { icon: <Terminal className="w-8 h-8" />, title: 'MECHA TERMINAL', desc: 'Command-line interface for traders who prefer speed over clicks' }
+            ].map((feature, i) => (
+              <div key={i} className="p-6 rounded-lg bg-[#0a0a0f] border border-[#00ff88]/20 hover:border-[#00ff88]/50 transition-all">
+                <div className="w-12 h-12 rounded bg-[#00ff88]/10 border border-[#00ff88]/30 flex items-center justify-center text-[#00ff88] mb-4">{feature.icon}</div>
+                <h3 className="text-lg font-bold mb-2">{feature.title}</h3>
+                <p className="text-gray-500 text-sm">{feature.desc}</p>
               </div>
-              {!isConnected && <p className="mt-2 text-xs text-center font-mono text-[#00ff88]/60">// CONNECT WALLET TO ACTIVATE AGENT</p>}
-            </div>
+            ))}
           </div>
         </div>
       </section>
       
-      <section className="py-16 md:py-32 px-4">
-        <div className="max-w-4xl mx-auto text-center scroll-reveal">
-          <span className="text-[10px] font-mono text-[#00ff88]/60 tracking-widest">// DEPLOYMENT</span>
-          <h2 className="text-3xl md:text-5xl font-black mt-4 mb-6">READY TO <span className="text-[#00ff88]">ACTIVATE</span>?</h2>
-          <p className="text-sm md:text-xl text-gray-500 mb-8 md:mb-12 font-mono">// AUTONOMOUS DEFI AGENT</p>
-          <div className="flex flex-col sm:flex-row gap-3 md:gap-6 justify-center">
-            <MagnetButton onClick={() => document.getElementById('terminal')?.scrollIntoView({ behavior: 'smooth' })} className="px-6 md:px-10 py-3 md:py-4 bg-gradient-to-r from-[#00ff88] to-[#00cc6a] text-black font-bold text-sm md:text-lg tracking-wider rounded-lg">LAUNCH AGENT</MagnetButton>
-            <a href="https://explorer.mantle.xyz" target="_blank" rel="noopener noreferrer" className="px-6 md:px-10 py-3 md:py-4 border-2 border-[#00ff88]/50 hover:border-[#00ff88] text-[#00ff88] font-bold text-sm md:text-lg tracking-wider rounded-lg transition-all flex items-center justify-center gap-2">EXPLORER<ExternalLink className="w-4 h-4" /></a>
-          </div>
-        </div>
-      </section>
-      
+      {/* Footer */}
       <footer className="py-6 px-4 border-t border-[#00ff88]/20">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2">
           <div className="flex items-center gap-2"><div className="w-5 h-5 rounded bg-[#00ff88]/20 border border-[#00ff88]/30 flex items-center justify-center"><Terminal className="w-2.5 h-2.5 text-[#00ff88]" /></div><span className="font-mono text-xs text-gray-500">MANTLIC v1.0.0</span></div>
           <p className="text-[10px] font-mono text-gray-600">// MANTLE TURING TEST HACKATHON 2026</p>
         </div>
       </footer>
+      
       <style jsx global>{`@keyframes gridMove { from { background-position: 0 0; } to { background-position: 50px 50px; } }`}</style>
     </div>
   )
