@@ -5,7 +5,13 @@ import { parseEther } from 'viem'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { Send, Bot, User, Zap, Terminal, ChevronDown, ExternalLink, Shield, Zap as ZapIcon, Globe } from 'lucide-react'
 import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import * as THREE from 'three'
+
+// Register GSAP plugins
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger)
+}
 
 interface Message { role: 'user' | 'assistant'; content: string; status?: 'pending' | 'success' | 'error' }
 
