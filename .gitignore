@@ -36,3 +36,9 @@ coverage
 .playwright
 
 .vercel
+node_modules/
+dist/
+artifacts/
+cache/
+typechain/
+.next/
