@@ -1,216 +1,243 @@
-# ERC-8004 Contract Deployment Guide
+# Mantlic Smart Contracts — Deployment Guide
+## Mantle Turing Test Hackathon 2026
 
-This guide walks you through deploying the Mantlic Agent Registry contract to Mantle Sepolia testnet.
+> Complete deployment instructions for ERC-8004 Agent Registry, Benchmarking, and Swap contracts.
+
+---
+
+## Contracts Overview
+
+| Contract | File | Points | Description |
+|----------|------|--------|-------------|
+| **MantlicAgentRegistry** | `MantlicAgentRegistry.sol` | 12 pts (Bazaar) | ERC-8004 Identity + Reputation + Validation |
+| **MantlicSwap** | `MantlicSwap.sol` | 15 pts (Technical) | Decentralized swap execution |
+| **Benchmarking** | (included in Registry) | 10 pts (Innovation) | On-chain AI agent benchmarking |
+
+---
 
 ## Prerequisites
 
-1. **MetaMask** wallet installed
-2. **Mantle Sepolia** network added to MetaMask
-3. **Test MNT** tokens from [Mantle Faucet](https://www.l2faucet.com/mantle)
-4. Remix IDE: [https://remix.ethereum.org](https://remix.ethereum.org)
+1. **Node.js 18+** and npm
+2. **MetaMask** wallet with Mantle Sepolia configured
+3. **Test MNT** from [Mantle Faucet](https://www.l2faucet.com/mantle)
+4. **Remix IDE** or **Hardhat** for deployment
 
-## Step 1: Add Mantle Sepolia to MetaMask
+---
 
-**Network Name:** Mantle Sepolia Testnet
-**RPC URL:** `https://rpc.sepolia.mantle.xyz`
-**Chain ID:** `5003`
-**Currency Symbol:** `MNT`
-**Block Explorer:** `https://explorer.sepolia.mantle.xyz`
+## Network Configuration
 
-## Step 2: Get Test MNT
-
-1. Go to [https://www.l2faucet.com/mantle](https://www.l2faucet.com/mantle)
-2. Connect your wallet
-3. Request test tokens (may take a few minutes)
-
-## Step 3: Open Remix IDE
-
-1. Go to [https://remix.ethereum.org](https://remix.ethereum.org)
-2. Create a new file: `MantlicAgentNFT.sol`
-
-## Step 4: Paste the Contract
-
-```solidity
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
-
-/**
- * @title MantlicAgentNFT
- * @dev ERC-8004 inspired Agent Registry Contract
- * @notice Implements on-chain AI agent identity and decision logging
- */
-contract MantlicAgentNFT {
-    // Agent data structure
-    struct Agent {
-        address owner;
-        string agentName;
-        string metadataURI;
-        uint256 createdAt;
-        uint256 decisionsCount;
-    }
-    
-    // Decision log structure
-    struct Decision {
-        uint256 agentId;
-        string action;
-        string result;
-        uint256 confidence;
-        uint256 timestamp;
-    }
-    
-    // State variables
-    uint256 public totalAgents;
-    mapping(uint256 => Agent) public agents;
-    mapping(uint256 => Decision[]) public decisionLogs;
-    
-    // Events
-    event AgentRegistered(uint256 indexed agentId, address indexed owner, string agentName);
-    event DecisionLogged(uint256 indexed agentId, uint256 indexed decisionId, string action, uint256 confidence);
-    
-    /**
-     * @dev Register a new AI agent
-     * @param agentName Name of the agent
-     * @param metadataURI IPFS URI for agent metadata
-     * @return agentId The ID of the newly registered agent
-     */
-    function registerAgent(string calldata agentName, string calldata metadataURI) external returns (uint256) {
-        require(bytes(agentName).length > 0, "Agent name required");
-        
-        uint256 agentId = totalAgents++;
-        agents[agentId] = Agent({
-            owner: msg.sender,
-            agentName: agentName,
-            metadataURI: metadataURI,
-            createdAt: block.timestamp,
-            decisionsCount: 0
-        });
-        
-        emit AgentRegistered(agentId, msg.sender, agentName);
-        return agentId;
-    }
-    
-    /**
-     * @dev Get agent details
-     * @param agentId The ID of the agent
-     * @return Agent struct with all details
-     */
-    function getAgent(uint256 agentId) external view returns (Agent memory) {
-        require(agentId < totalAgents, "Agent does not exist");
-        return agents[agentId];
-    }
-    
-    /**
-     * @dev Log a decision made by an agent
-     * @param agentId The ID of the agent
-     * @param action The action taken
-     * @param result The result of the action
-     * @param confidence Confidence score (0-10000 =0-100%)
-     * @return decisionId The ID of the logged decision
-     */
-    function logDecision(
-        uint256 agentId,
-        string calldata action,
-        string calldata result,
-        uint256 confidence
-    ) external returns (uint256) {
-        require(agentId < totalAgents, "Agent does not exist");
-        require(agents[agentId].owner == msg.sender, "Not the agent owner");
-        require(confidence <= 10000, "Confidence must be 0-10000");
-        
-        uint256 decisionId = decisionLogs[agentId].length;
-        decisionLogs[agentId].push(Decision({
-            agentId: agentId,
-            action: action,
-            result: result,
-            confidence: confidence,
-            timestamp: block.timestamp
-        }));
-        
-        agents[agentId].decisionsCount++;
- emit DecisionLogged(agentId, decisionId, action, confidence);
-        return decisionId;
-    }
-    
-    /**
-     * @dev Get decision count for an agent
-     * @param agentId The ID of the agent
-     * @return Number of decisions logged
-     */
-    function getDecisionCount(uint256 agentId) external view returns (uint256) {
-        return decisionLogs[agentId].length;
-    }
-    
-    /**
-     * @dev Get a specific decision
-     * @param agentId The ID of the agent
-     * @param decisionId The ID of the decision
-     * @return Decision struct
-     */
-    function getDecision(uint256 agentId, uint256 decisionId) external view returns (Decision memory) {
-        require(decisionId < decisionLogs[agentId].length, "Decision does not exist");
-        return decisionLogs[agentId][decisionId];
-    }
-}
+### Mantle Sepolia (Testnet)
+```
+Network Name: Mantle Sepolia Testnet
+RPC URL: https://rpc.sepolia.mantle.xyz
+Chain ID: 5003
+Currency Symbol: MNT
+Block Explorer: https://explorer.sepolia.mantle.xyz
 ```
 
-## Step 5: Compile the Contract
+### Mantle Mainnet
+```
+Network Name: Mantle
+RPC URL: https://rpc.mantle.xyz
+Chain ID: 5000
+Currency Symbol: MNT
+Block Explorer: https://explorer.mantle.xyz
+```
 
-1. In Remix, select the **Solidity Compiler** tab (left sidebar)
+---
+
+## Option 1: Remix IDE Deployment
+
+### Step 1: Open Remix IDE
+Navigate to [https://remix.ethereum.org](https://remix.ethereum.org)
+
+### Step 2: Create Contract Files
+1. Create `MantlicAgentRegistry.sol` in Remix
+2. Paste contents from `contracts/MantlicAgentRegistry.sol`
+3. Create `MantlicSwap.sol` in Remix
+4. Paste contents from `contracts/MantlicSwap.sol`
+
+### Step 3: Install OpenZeppelin Dependencies
+In Remix, add these imports at the top of each file:
+```solidity
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Votes.sol";
+import "@openzeppelin/contracts/governance/utils/Votes.sol";
+import "@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+```
+
+### Step 4: Compile Contracts
+1. Select **Solidity Compiler** tab
 2. Set compiler version to **0.8.20+**
-3. Click **Compile MantlicAgentNFT.sol**
-4. Verify no errors in the console
+3. Click **Compile MantlicAgentRegistry.sol**
+4. Click **Compile MantlicSwap.sol**
+5. Verify no errors
 
-## Step 6: Deploy the Contract
-
+### Step 5: Deploy MantlicAgentRegistry
 1. Select **Deploy & Run Transactions** tab
 2. **Environment:** Select **Injected Provider - MetaMask**
-3. Connect MetaMask when prompted
-4. Ensure you're on Mantle Sepolia network
-5. Click **Deploy**
-6. Confirm the transaction in MetaMask
-7. Wait for transaction confirmation
+3. Connect MetaMask (ensure Mantle Sepolia network)
+4. Click **Deploy** on MantlicAgentRegistry
+5. Confirm transaction in MetaMask
+6. Wait for confirmation
+7. **Copy deployed address**
 
-## Step 7: Update Configuration
+### Step 6: Deploy MantlicSwap
+1. MantlicSwap constructor requires two parameters:
+   - `_feeRecipient`: Your wallet address
+   - `_feeBps`: Fee in basis points (e.g., 30 = 0.3%)
+2. Click **Deploy** with these values
+3. Confirm transaction
+4. **Copy deployed address**
 
-1. Copy the deployed contract address from Remix
-2. Update `src/lib/contracts.ts`:
+### Step 7: Verify Deployment
+1. Go to [Mantle Sepolia Explorer](https://explorer.sepolia.mantle.xyz)
+2. Search for each contract address
+3. Verify contract is visible
 
-```typescript
-export const CONTRACTS = {
-  AGENT_REGISTRY: 'YOUR_DEPLOYED_ADDRESS_HERE' as const,
-  DECISION_LOGGER: 'YOUR_DEPLOYED_ADDRESS_HERE' as const,
-  // ...
-}
+---
+
+## Option 2: Hardhat Deployment
+
+### Step 1: Setup
+```bash
+cd mantlic
+npm install
 ```
 
-3. Update `scripts/deploy-contracts.ts` with the real address
+### Step 2: Configure Hardhat
+Update `hardhat.config.ts`:
+```typescript
+import { MantleSepolia } from "@mantleio/hardhat-plugin";
 
-## Step 8: Verify Deployment
+const config: HardhatUserConfig = {
+  solidity: "0.8.20",
+  networks: {
+    "mantle-sepolia": {
+      url: "https://rpc.sepolia.mantle.xyz",
+      chainId: 5003,
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+    },
+  },
+};
+```
 
-1. Go to [Mantle Sepolia Explorer](https://explorer.sepolia.mantle.xyz)
-2. Search for your contract address
-3. Verify contract is visible and interactions work
+### Step 3: Deploy
+```bash
+npx hardhat run scripts/deploy.ts --network mantle-sepolia
+```
 
-## Contract Verification (Optional)
+### Step 4: Run Tests
+```bash
+npx hardhat test test/contracts.test.ts --network mantle-sepolia
+```
 
-1. In Remix, go to **Deploy & Run Transactions**
-2. Expand your deployed contract
-3. Click the **ABI** button to copy the ABI
-4. Go to [Mantle Sepolia Explorer](https://explorer.sepolia.mantle.xyz)
-5. Navigate to your contract
-6. Click **Verify & Publish**
-7. Paste ABI and contract source code
-8. Submit verification
+---
 
-## Testing the Contract
+## Contract Addresses (Update After Deployment)
 
-After deployment, test these functions:
+Update `src/lib/contracts.ts`:
+```typescript
+export const CONTRACTS = {
+  // ERC-8004 Agent Registry - DEPLOYED
+  AGENT_REGISTRY: 'YOUR_AGENT_REGISTRY_ADDRESS' as const,
+  
+  // MantlicSwap - DEPLOYED
+  MANTLIC_SWAP: 'YOUR_MANTLIC_SWAP_ADDRESS' as const,
+  
+  // Mantle DeFi
+  CAMELOT_ROUTER: '0x0000000000000000000000000000000000000000' as const,
+} as const
+```
+
+---
+
+## Contract Interactions
+
+### Register an Agent (ERC-8004)
+```javascript
+// Via ethers.js
+const registry = await ethers.getContractAt(
+  "MantlicAgentRegistry",
+  "YOUR_AGENT_REGISTRY_ADDRESS"
+);
+
+const tx = await registry.registerAgent(
+  "Mantlic Alpha", // name
+  "ipfs://QmAgent001",      // metadataURI
+  "0x" + "00".repeat(32)    // capabilities
+);
+
+const receipt = await tx.wait();
+const agentId = await registry.getAgentByAddress(wallet.address);
+console.log("Agent ID:", agentId);
+```
+
+### Record Benchmark Result
+```javascript
+await registry.recordBenchmark(
+1,                          // agentId
+  "dex_arbitrage", // benchmarkType
+  8500,                      // score (85%)
+150,                       // latencyMs
+  ethers.parseEther("0.05"), // gasCost
+  "ipfs://benchmark1"        // metadataURI
+);
+```
+
+### Execute Swap
+```javascript
+const swap = await ethers.getContractAt(
+  "MantlicSwap",
+  "YOUR_MANTLIC_SWAP_ADDRESS"
+);
+
+// Get quote
+const [expected, minOut] = await swap.getQuote(
+  MNT_TOKEN,
+  USDC_TOKEN,
+  ethers.parseEther("1"),
+  50 // 0.5% slippage
+);
+
+// Execute swap
+const tx = await swap.executeSwap(
+  MNT_TOKEN,
+  USDC_TOKEN,
+  ethers.parseEther("1"),
+  minOut,
+  "0x"
+);
+```
+
+---
+
+## Testing the Contracts
+
+### Manual Testing in Remix
 
 1. **registerAgent**: Register a new agent
 2. **getAgent**: Retrieve agent details
-3. **logDecision**: Log a decision with confidence score
-4. **getDecisionCount**: Check decision count
-5. **getDecision**: Retrieve a specific decision
+3. **updateReputation**: Update agent score
+4. **attestAgent**: Create trust attestation
+5. **recordBenchmark**: Record benchmark result
+6. **getTopAgentsByBenchmark**: Get leaderboard
+7. **executeSwap**: Execute token swap
+8. **getQuote**: Get swap quote
+
+### Automated Testing
+```bash
+npx hardhat test
+```
+
+---
 
 ## Troubleshooting
 
@@ -219,10 +246,38 @@ After deployment, test these functions:
 | "Insufficient funds" | Get test MNT from faucet |
 | "Wrong network" | Switch MetaMask to Mantle Sepolia |
 | "Transaction failed" | Increase gas limit in MetaMask |
-| Contract not responding | Verify contract address is correct |
+| "Contract not responding" | Verify contract address is correct |
+| "Already registered" | Agent already registered for this wallet |
+| "Import errors" | Add OpenZeppelin imports in Remix |
+
+---
 
 ## Support
 
 - Mantle Discord: https://discord.gg/mantle
 - Mantle Docs: https://docs.mantle.xyz
 - Faucet: https://www.l2faucet.com/mantle
+- Hackathon: https://dorahacks.io/hackathon/mantleturingtesthackathon2026
+
+---
+
+## Contract Summary
+
+### MantlicAgentRegistry (ERC-8004)
+- ✅ Identity Registry (ERC-721 NFT)
+- ✅ Reputation Registry (scoring system)
+- ✅ Validation Registry (attestations)
+- ✅ On-chain Benchmarking (leaderboard)
+- ✅ Voting support (ERC-721Votes)
+
+### MantlicSwap
+- ✅ Token swap execution
+- ✅ Slippage protection
+- ✅ Fee management
+- ✅ Price tracking
+- ✅ Reentrancy protection
+
+---
+
+**Built for the Mantle Turing Test Hackathon 2026**
+**Total Points Potential: 37 pts (12 + 10 + 15)**

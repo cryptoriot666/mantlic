@@ -91,7 +91,7 @@ export function useMantlicAgent() {
         // Execute swap
         if (walletClient && publicClient) {
           const result = await executeSwap(
-            { ...params, recipient: address },
+            { ...params, recipient: address, slippage: params.slippage || 50 },
             publicClient,
             walletClient
           )
@@ -102,7 +102,7 @@ export function useMantlicAgent() {
         }
         
         // Demo mode (no real wallet)
-        return `SWAP QUOTE (Demo Mode):\n${params.amountIn} ${params.tokenIn} → ${quote.expectedOutput} ${params.tokenOut}\nRate: ${quote.route}\nPrice Impact: ${quote.priceImpact}%\nSlippage: ${params.slippage / 100}%\n\n[Execute swap to confirm]`
+        return `SWAP QUOTE (Demo Mode):\n${params.amountIn} ${params.tokenIn} → ${quote.expectedOutput} ${params.tokenOut}\nRate: ${quote.route}\nPrice Impact: ${quote.priceImpact}%\nSlippage: ${(params.slippage ?? 50) / 100}%\n\n[Execute swap to confirm]`
       }
       
       case 'balance': {
