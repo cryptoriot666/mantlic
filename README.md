@@ -9,7 +9,7 @@
 
 Mantlic is an autonomous AI trading agent for Mantle DeFi. Natural language commands → on-chain execution. ERC-8004 agent identity on Mantle.
 
-**Live Demo: [mantlic.vercel.app](https://mantlic.vercel.app)**
+**Live Demo: [mantlic-2eecwgmju-the-riot-s-projects.vercel.app](https://mantlic-2eecwgmju-the-riot-s-projects.vercel.app)**
 
 ## Philosophy
 
@@ -128,6 +128,7 @@ NEXT_PUBLIC_1INCH_API_KEY=...             # 1inch Fusion
 - **GitHub:** [github.com/cryptoriot666/mantlic](https://github.com/cryptoriot666/mantlic)
 - **Demo Video:** Record a 2-minute demo using OBS or Loom (1080p), export as MP4, upload to YouTube (unlisted works), paste the YouTube link here
 - **Contracts:** Mantle Sepolia explorer (see table above)
+- **Judge Verification:** [docs/GITHUB_VERIFICATION.md](docs/GITHUB_VERIFICATION.md) — Complete verification guide for judges with on-chain proof and tech stack details
 
 ## Screenshots
 
