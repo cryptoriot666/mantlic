@@ -562,64 +562,64 @@ Type "help" for available commands or ask me anything about DeFi on Mantle.`,
       {/* Main Layout */}
       <div className="flex pt-16 min-h-screen">
         {/* Sidebar */}
-        <aside className={`fixed lg:static inset-y-0 left-0 z-40 w-72 bg-[#0a0a0f]/95 backdrop-blur-sm border-r border-[#00ff88]/20 transform transition-transform duration-300 lg:translate-x-0 ${showSidebar ? 'translate-x-0' : '-translate-x-full'}`}>
-          <div className="p-4 overflow-y-auto h-full">
-            {/* Close button for mobile */}
-            <button 
-              onClick={() => setShowSidebar(false)}
-              className="lg:hidden absolute top-4 right-4 p-2 rounded hover:bg-[#00ff88]/10"
-            >
-              <X className="w-5 h-5 text-gray-400" />
-            </button>
-            
-            {/* Wallet Status */}
-            <div className="mb-4">
-              {isConnected ? (
-                <div className="bg-[#00ff88]/10 border border-[#00ff88]/30 rounded-lg p-3">
-                  <div className="text-xs text-[#00ff88] mb-1">CONNECTED</div>
-                  <div className="font-mono text-sm text-white truncate">{address}</div>
-                  {mntBalance && (
-                    <div className="mt-2 text-xs text-gray-400">
-                      <span className="text-[#00ff88]">Balance:</span> {parseFloat(mntBalance.formatted).toFixed(4)} MNT
+                <aside className={`sticky top-16 h-[calc(100vh-4rem)] w-72 flex-shrink-0 bg-[#0a0a0f]/95 backdrop-blur-sm border-r border-[#00ff88]/20 transform transition-transform duration-300 lg:translate-x-0 ${showSidebar ? 'translate-x-0' : '-translate-x-full'}`}>
+                  <div className="h-full overflow-y-auto p-4">
+                    {/* Close button for mobile */}
+                    <button
+                      onClick={() => setShowSidebar(false)}
+                      className="lg:hidden absolute top-4 right-4 p-2 rounded hover:bg-[#00ff88]/10 z-10"
+                    >
+                      <X className="w-5 h-5 text-gray-400" />
+                    </button>
+
+                    {/* Wallet Status */}
+                    <div className="mb-4">
+                      {isConnected ? (
+                        <div className="bg-[#00ff88]/10 border border-[#00ff88]/30 rounded-lg p-3">
+                          <div className="text-xs text-[#00ff88] mb-1">CONNECTED</div>
+                          <div className="font-mono text-sm text-white truncate">{address}</div>
+                          {mntBalance && (
+                            <div className="mt-2 text-xs text-gray-400">
+                              <span className="text-[#00ff88]">Balance:</span> {parseFloat(mntBalance.formatted).toFixed(4)} MNT
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="bg-[#0f0f15] border border-[#00ff88]/20 rounded-lg p-3 text-center">
+                          <div className="text-xs text-gray-500 mb-2">Connect wallet to access DeFi</div>
+                          <ConnectButton />
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              ) : (
-                <div className="bg-[#0f0f15] border border-[#00ff88]/20 rounded-lg p-3 text-center">
-                  <div className="text-xs text-gray-500 mb-2">Connect wallet to access DeFi</div>
-                  <ConnectButton />
-                </div>
-              )}
-            </div>
-            
-            {/* Agent Card */}
-            <AgentCard stats={agentStats} />
-            
-            {/* Viral Card - shown when connected */}
-            {isConnected && <ViralCard />}
-            
-            {/* Command Help */}
-            <CommandHelp />
-            
-            {/* Quick Actions */}
-            <div className="mt-4 space-y-2">
-              <button 
-                onClick={(e) => { createRipple(e); sendMessage('balance'); }}
-                className="w-full py-2 px-3 rounded bg-[#0f0f15] border border-[#00ff88]/20 hover:border-[#00ff88]/50 text-left text-sm font-mono transition-colors flex items-center gap-2 ripple-container btn-glow"
-              >
-                <TrendingUp className="w-4 h-4 text-[#00ff88]" />
-                Check Balance
-              </button>
-              <button 
-                onClick={(e) => { createRipple(e); sendMessage('yield'); }}
-                className="w-full py-2 px-3 rounded bg-[#0f0f15] border border-[#00ff88]/20 hover:border-[#00ff88]/50 text-left text-sm font-mono transition-colors flex items-center gap-2 ripple-container btn-glow"
-              >
-                <Activity className="w-4 h-4 text-[#00ff88]" />
-                Compare Yields
-              </button>
-            </div>
-          </div>
-        </aside>
+
+                    {/* Agent Card */}
+                    <AgentCard stats={agentStats} />
+
+                    {/* Viral Card - shown when connected */}
+                    {isConnected && <ViralCard />}
+
+                    {/* Command Help */}
+                    <CommandHelp />
+
+                    {/* Quick Actions */}
+                    <div className="mt-4 space-y-2">
+                      <button
+                        onClick={(e) => { createRipple(e); sendMessage('balance'); }}
+                        className="w-full py-2 px-3 rounded bg-[#0f0f15] border border-[#00ff88]/20 hover:border-[#00ff88]/50 text-left text-sm font-mono transition-colors flex items-center gap-2 ripple-container btn-glow"
+                      >
+                        <TrendingUp className="w-4 h-4 text-[#00ff88]" />
+                        Check Balance
+                      </button>
+                      <button
+                        onClick={(e) => { createRipple(e); sendMessage('yield'); }}
+                        className="w-full py-2 px-3 rounded bg-[#0f0f15] border border-[#00ff88]/20 hover:border-[#00ff88]/50 text-left text-sm font-mono transition-colors flex items-center gap-2 ripple-container btn-glow"
+                      >
+                        <Activity className="w-4 h-4 text-[#00ff88]" />
+                        Compare Yields
+                      </button>
+                    </div>
+                  </div>
+                </aside>
         
         {/* Overlay for mobile sidebar */}
         {showSidebar && (
