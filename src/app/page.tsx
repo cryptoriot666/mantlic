@@ -562,18 +562,26 @@ Type "help" for available commands or ask me anything about DeFi on Mantle.`,
       {/* Main Layout */}
       <div className="flex pt-16 min-h-screen">
         {/* Sidebar */}
-                <aside className={`sticky top-16 h-[calc(100vh-4rem)] w-72 flex-shrink-0 bg-[#0a0a0f]/95 backdrop-blur-sm border-r border-[#00ff88]/20 transform transition-transform duration-300 lg:translate-x-0 ${showSidebar ? 'translate-x-0' : '-translate-x-full'}`}>
-                  <div className="h-full overflow-y-auto p-4">
-                    {/* Close button for mobile */}
-                    <button
-                      onClick={() => setShowSidebar(false)}
-                      className="lg:hidden absolute top-4 right-4 p-2 rounded hover:bg-[#00ff88]/10 z-10"
-                    >
-                      <X className="w-5 h-5 text-gray-400" />
-                    </button>
+                <aside className={`
+                  fixed lg:sticky top-16 left-0 z-40 h-screen w-72 flex-shrink-0
+                  bg-[#0a0a0f]/95 backdrop-blur-sm border-r border-[#00ff88]/20
+                  transform transition-transform duration-300 ease-out
+                  ${showSidebar ? 'translate-x-0' : '-translate-x-full'}
+                  lg:translate-x-0
+                `}>
+                  <div className="h-full flex flex-col overflow-hidden">
+                    {/* Header with close button */}
+                    <div className="flex items-center justify-between p-4 lg:hidden flex-shrink-0">
+                      <span className="text-xs text-[#00ff88] font-mono font-bold">MENU</span>
+                      <button onClick={() => setShowSidebar(false)} className="p-2 rounded hover:bg-[#00ff88]/10">
+                        <X className="w-5 h-5 text-gray-400" />
+                      </button>
+                    </div>
 
-                    {/* Wallet Status */}
-                    <div className="mb-4">
+                    {/* Scrollable content */}
+                    <div className="flex-1 overflow-y-auto p-4 pt-0 space-y-4">
+
+                      {/* Wallet Status */}
                       {isConnected ? (
                         <div className="bg-[#00ff88]/10 border border-[#00ff88]/30 rounded-lg p-3">
                           <div className="text-xs text-[#00ff88] mb-1">CONNECTED</div>
@@ -590,33 +598,33 @@ Type "help" for available commands or ask me anything about DeFi on Mantle.`,
                           <ConnectButton />
                         </div>
                       )}
-                    </div>
 
-                    {/* Agent Card */}
-                    <AgentCard stats={agentStats} />
+                      {/* Agent Card */}
+                      <AgentCard stats={agentStats} />
 
-                    {/* Viral Card - shown when connected */}
-                    {isConnected && <ViralCard />}
+                      {/* Viral Card */}
+                      {isConnected && <ViralCard />}
 
-                    {/* Command Help */}
-                    <CommandHelp />
+                      {/* Command Help */}
+                      <CommandHelp />
 
-                    {/* Quick Actions */}
-                    <div className="mt-4 space-y-2">
-                      <button
-                        onClick={(e) => { createRipple(e); sendMessage('balance'); }}
-                        className="w-full py-2 px-3 rounded bg-[#0f0f15] border border-[#00ff88]/20 hover:border-[#00ff88]/50 text-left text-sm font-mono transition-colors flex items-center gap-2 ripple-container btn-glow"
-                      >
-                        <TrendingUp className="w-4 h-4 text-[#00ff88]" />
-                        Check Balance
-                      </button>
-                      <button
-                        onClick={(e) => { createRipple(e); sendMessage('yield'); }}
-                        className="w-full py-2 px-3 rounded bg-[#0f0f15] border border-[#00ff88]/20 hover:border-[#00ff88]/50 text-left text-sm font-mono transition-colors flex items-center gap-2 ripple-container btn-glow"
-                      >
-                        <Activity className="w-4 h-4 text-[#00ff88]" />
-                        Compare Yields
-                      </button>
+                      {/* Quick Actions */}
+                      <div className="space-y-2">
+                        <button
+                          onClick={(e) => { createRipple(e); sendMessage('balance'); }}
+                          className="w-full py-2 px-3 rounded bg-[#0f0f15] border border-[#00ff88]/20 hover:border-[#00ff88]/50 text-left text-sm font-mono transition-colors flex items-center gap-2 ripple-container btn-glow"
+                        >
+                          <TrendingUp className="w-4 h-4 text-[#00ff88]" />
+                          Check Balance
+                        </button>
+                        <button
+                          onClick={(e) => { createRipple(e); sendMessage('yield'); }}
+                          className="w-full py-2 px-3 rounded bg-[#0f0f15] border border-[#00ff88]/20 hover:border-[#00ff88]/50 text-left text-sm font-mono transition-colors flex items-center gap-2 ripple-container btn-glow"
+                        >
+                          <Activity className="w-4 h-4 text-[#00ff88]" />
+                          Compare Yields
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </aside>
@@ -630,7 +638,7 @@ Type "help" for available commands or ask me anything about DeFi on Mantle.`,
         )}
         
         {/* Main Chat Area */}
-        <main className="flex-1 flex flex-col min-h-screen">
+                <main className="flex-1 flex flex-col min-h-screen lg:pl-72">
           {/* Chat Header */}
           <div className="px-4 py-3 border-b border-[#00ff88]/20 bg-[#0a0a0f]/80 backdrop-blur-sm">
             <div className="flex items-center gap-2">
