@@ -6,6 +6,8 @@ import { Terminal, Send, Bot, User, Activity, Cpu, Database, TrendingUp, Loader2
 import { useAgentMemory } from '../hooks/useAgentMemory'
 import { parseCommand } from '../commands/parser'
 import { ViralCard } from '../components/ViralCard'
+import { TradeCard, DemoTradeCard } from '../components/TradeCard'
+import { Leaderboard, CompactLeaderboard } from '../components/Leaderboard'
 
 interface Message {
   id: string
@@ -339,6 +341,11 @@ function CommandHelp() {
         </div>
         <div className="flex items-center gap-2 text-gray-400">
           <ChevronRight className="w-3 h-3 text-[#00ff88]" />
+          <span className="text-[#00ff88]">leaderboard</span>
+          <span className="text-gray-500">Show top agents</span>
+        </div>
+        <div className="flex items-center gap-2 text-gray-400">
+          <ChevronRight className="w-3 h-3 text-[#00ff88]" />
           <span className="text-[#00ff88]">register agent</span>
           <span className="text-gray-500">{'<name>'}</span>
         </div>
@@ -374,6 +381,8 @@ Type "help" for available commands or ask me anything about DeFi on Mantle.`,
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [showSidebar, setShowSidebar] = useState(true)
+  const [showLeaderboard, setShowLeaderboard] = useState(false)
+  const [showDemoTrade, setShowDemoTrade] = useState(true)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   
   // Agent stats (simulated for demo)
@@ -604,7 +613,10 @@ Type "help" for available commands or ask me anything about DeFi on Mantle.`,
 
                       {/* Viral Card */}
                       {isConnected && <ViralCard />}
-
+                      
+                      {/* Compact Leaderboard */}
+                      <CompactLeaderboard />
+                      
                       {/* Command Help */}
                       <CommandHelp />
 
@@ -641,12 +653,43 @@ Type "help" for available commands or ask me anything about DeFi on Mantle.`,
                 <main className="flex-1 flex flex-col min-h-screen lg:pl-72">
           {/* Chat Header */}
           <div className="px-4 py-3 border-b border-[#00ff88]/20 bg-[#0a0a0f]/80 backdrop-blur-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#00ff88] animate-pulse" />
-              <span className="font-mono text-sm text-[#00ff88]">MANTLIC TERMINAL</span>
-              <span className="text-xs text-gray-500 ml-2">// AI AGENT</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-[#00ff88] animate-pulse" />
+                <span className="font-mono text-sm text-[#00ff88]">MANTLIC TERMINAL</span>
+                <span className="text-xs text-gray-500 ml-2">// AI AGENT</span>
+              </div>
+              <button 
+                onClick={() => setShowLeaderboard(!showLeaderboard)}
+                className="px-3 py-1 rounded bg-[#00ff88]/10 border border-[#00ff88]/30 text-[#00ff88] text-xs font-mono hover:bg-[#00ff88]/20 transition-colors"
+              >
+                {showLeaderboard ? 'HIDE' : 'SHOW'} LEADERBOARD
+              </button>
             </div>
           </div>
+          
+          {/* Leaderboard Section */}
+          {showLeaderboard && (
+            <div className="p-4 border-b border-[#00ff88]/20 bg-[#0a0a0f]/50">
+              <Leaderboard />
+            </div>
+          )}
+          
+          {/* Demo Trade Card */}
+          {showDemoTrade && (
+            <div className="p-4 border-b border-[#00ff88]/10 bg-gradient-to-r from-[#0a0a0f] to-transparent">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-mono text-gray-500">EXAMPLE SWAP</span>
+                <button 
+                  onClick={() => setShowDemoTrade(false)}
+                  className="text-xs text-gray-600 hover:text-gray-400"
+                >
+                  ✕
+                </button>
+              </div>
+              <DemoTradeCard />
+            </div>
+          )}
           
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">

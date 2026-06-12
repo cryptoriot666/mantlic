@@ -8,7 +8,7 @@ export type CommandIntent =
   | { type: 'unknown'; raw: string }
 
 export interface ParsedCommand {
-  type: 'swap' | 'balance' | 'yield' | 'monitor' | 'status' | 'help' | 'register' | 'benchmark' | 'unknown'
+  type: 'swap' | 'balance' | 'yield' | 'monitor' | 'status' | 'help' | 'register' | 'benchmark' | 'leaderboard' | 'unknown'
   params: any
   raw: string
 }
@@ -73,6 +73,11 @@ export function parseCommand(input: string): ParsedCommand {
     return { type: 'status', params: {}, raw: input }
   }
   
+  // Parse leaderboard
+  if (text === 'leaderboard' || text === 'top agents' || text === 'rankings') {
+    return { type: 'leaderboard', params: {}, raw: input }
+  }
+  
   // Parse monitor
   const monitorMatch = text.match(/monitor\s+(\w+)\s+(above|below)\s+\$?([\d.]+)/)
   if (monitorMatch) {
@@ -104,6 +109,9 @@ export function getHelpText(): string {
   
   yield
     Compare DeFi yields across Mantle
+  
+  leaderboard
+    Show top agent rankings
   
   monitor <token> <above|below> $<price>
     Example: monitor MNT below $1.50
