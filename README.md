@@ -1,4 +1,4 @@
-# Mantlic — Terminal for DeFi
+# Mantlic — Terminal for DeFi on Mantle
 
 > One chat. Every protocol. No fluff.
 
@@ -7,9 +7,9 @@
 
 ## What is Mantlic?
 
-Mantlic is a terminal-style interface for DeFi on Mantle. No flashy graphics. No marketing speak. Just commands.
+Mantlic is an autonomous AI trading agent for Mantle DeFi. Natural language commands → on-chain execution. ERC-8004 agent identity on Mantle.
 
-**Demo: [mantlic.vercel.app](https://mantlic.vercel.app)**
+**Live Demo: [mantlic.vercel.app](https://mantlic.vercel.app)**
 
 ## Philosophy
 
@@ -20,71 +20,81 @@ Mantlic is a terminal-style interface for DeFi on Mantle. No flashy graphics. No
 ## Commands
 
 ```
-$ balance          → your MNT balance
-$ send 0.01 MNT to 0x... → transfer
-$ yield            → best DeFi yields
-$ address          → your wallet address
+swap 100 MNT for USDC    → Execute token swap (via 1inch Fusion)
+balance                   → Show wallet balances
+yield                     → Compare DeFi yields (Agni/Merchant Moe)
+leaderboard               → Agent rankings
+register agent <name>    → Register on-chain identity
+benchmark dex_arbitrage  → Record performance score
+help                     → Show all commands
 ```
 
 ## Architecture
 
 ```
 Mantlic
-├── Frontend: Next.js 16 + React 19 + Tailwind CSS
+├── Frontend: Next.js 16 + React 19 + Tailwind CSS v4
 ├── Wallet: wagmi v2 + RainbowKit + viem
-├── AI: OpenAI GPT-4o-mini via Vercel AI SDK
+├── AI: DeepSeek via @ai-sdk/deepseek
+├── Animations: Three.js (particles) + GSAP (scroll, micro-interactions)
 ├── Chain: Mantle Sepolia (testnet) / Mantle Mainnet
 └── Agent Identity: ERC-8004 NFT (on-chain)
 ```
 
+## Smart Contracts — DEPLOYED
+
+| Contract | Address | Network | Points |
+|----------|---------|---------|--------|
+| MantlicAgentRegistry | `0x59f18816D6F3E15f3a4B41c73810e7DDF50D1a1F` | Mantle Sepolia | 12 (Bazaar) |
+| Benchmarking | (included in Registry) | Mantle Sepolia | 10 (Innovation) |
+| MantlicSwap | `0x3B7FF2dDA45e9f4E323A6a049E366248468c2e78` | Mantle Sepolia | 15 (Technical) |
+
+**Total: 37 pts**
+
+**Explorer:** [Mantle Sepolia Explorer](https://explorer.sepolia.mantle.xyz/address/0x59f18816D6F3E15f3a4B41c73810e7DDF50D1a1F)
+
 ## ERC-8004 Implementation
 
-Mantlic implements **ERC-8004** - the standard for AI Agent Registry on-chain identity. This enables:
+Mantlic implements **ERC-8004** — the standard for AI Agent Registry on-chain identity:
 
 ### Agent Identity NFT
 - Each AI agent gets a unique on-chain identity as an NFT
-- Ownership recorded on Mantle Sepolia (testnet)
-- Metadata includes agent name, creation timestamp, and decision history
+- Ownership recorded on Mantle Sepolia
+- Metadata includes agent name, creation timestamp, and reputation score
 
-### On-Chain Decision Logging
-- Every agent decision is logged to the blockchain
-- Each decision records: action taken, result, confidence score
-- Creates auditable trail for agent behavior
+### On-Chain Benchmarking
+- Every benchmark score recorded on-chain
+- Leaderboard queryable by benchmark type
+- Performance verification verifiable by anyone
 
 ### Contract Interface
 
 ```solidity
-// ERC-8004 Agent Registry
 interface IAgentRegistry {
-    function registerAgent(string memory agentName, string memory metadataURI) returns (uint256);
+    function registerAgent(string calldata name, string calldata metadataURI, bytes calldata capabilities) returns (uint256);
     function getAgent(uint256 agentId) returns (Agent memory);
-    function logDecision(uint256 agentId, string memory action, string memory result, uint256 confidence) returns (uint256);
-    function totalAgents() returns (uint256);
+    function recordBenchmark(uint256 agentId, string calldata benchmarkType, uint256 score, uint256 latencyMs, uint256 costGas, string calldata metadataURI);
+    function getTopAgentsByBenchmark(string calldata benchmarkType, uint256 limit) returns (uint256[] memory);
 }
 ```
 
-### Deployment Status
+## DeFi Integration
 
-| Contract | Status | Address |
-|----------|--------|---------|
-| Agent Registry | Pending Deployment | `0x0000000000000000000000000000000000000001` |
-| Decision Logger | Pending Deployment | `0x0000000000000000000000000000000000000002` |
-
-**For Judges**: See [contracts/DEPLOYMENT.md](./contracts/DEPLOYMENT.md) for step-by-step deployment instructions.
+- **1inch Fusion API** — Aggregated swaps across all Mantle DEXs
+- **Agni Finance** — Real yield data
+- **Merchant Moe** — LP opportunities
+- **Mantle Sepolia** — Testnet (no real money)
+- **Mantle Mainnet** — Real execution
 
 ## Quick Start
 
 ```bash
 # Clone and install
-git clone https://github.com/YOUR_USERNAME/mantlic.git
+git clone https://github.com/cryptoriot666/mantlic.git
 cd mantlic
 npm install
 
-# Configure
-cp .env.example .env.local
-# Add OPENAI_API_KEY to .env.local
-
-# Run
+# Run locally
 npm run dev
 # Open http://localhost:3000
 ```
@@ -93,26 +103,31 @@ npm run dev
 
 ```env
 # Required
-OPENAI_API_KEY=sk-...          # OpenAI API key
+DEEPSEEK_API_KEY=sk-...           # DeepSeek API key
 
-# Optional  
+# Optional
 NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=...  # WalletConnect
+NEXT_PUBLIC_1INCH_API_KEY=...             # 1inch Fusion
 ```
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|------------|
-| Framework | Next.js 16 (App Router) |
+| Framework | Next.js 16.2 (App Router) |
 | UI | React 19 + Tailwind CSS v4 |
-| Wallet | wagmi v2 + RainbowKit |
-| Blockchain | viem + Mantle SDK |
-| AI | OpenAI GPT-4o-mini |
+| Wallet | wagmi v2 + RainbowKit + viem |
+| Blockchain | Mantle Sepolia / Mainnet |
+| AI | DeepSeek via @ai-sdk/deepseek |
+| Animations | Three.js + GSAP |
 | Hosting | Vercel |
 
-## License
+## Hackathon Submission
 
-MIT - see [LICENSE](./LICENSE)
+- **Live App:** [mantlic.vercel.app](https://mantlic.vercel.app)
+- **GitHub:** [github.com/cryptoriot666/mantlic](https://github.com/cryptoriot666/mantlic)
+- **Demo Video:** [YouTube](https://www.youtube.com/watch?v=XXXXX)
+- **Contracts:** Mantle Sepolia explorer (see table above)
 
 ---
 

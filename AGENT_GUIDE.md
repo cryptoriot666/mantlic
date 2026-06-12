@@ -1,52 +1,61 @@
-# Mantlic Agent Guide — Minds Bazaar Submission
+# Mantlic Agent Guide — Hackathon Submission
 
 ## Overview
-Mantlic is an autonomous AI trading agent for Mantle DeFi. It uses natural language commands to execute swaps, check yields, and manage portfolios — all through an ERC-8004 compliant agent identity.
+Mantlic is an autonomous AI trading agent for Mantle DeFi. Natural language commands → on-chain execution. ERC-8004 agent identity on Mantle Sepolia.
+
+**Live App:** https://mantlic.vercel.app
+**GitHub:** https://github.com/cryptoriot666/mantlic
 
 ## How It Works
 
 ### Agent Identity (ERC-8004)
-Every Mantlic agent has a unique on-chain identity:
+Every Mantlic agent has a unique on-chain identity on Mantle Sepolia:
 - Token ID = Agent ID
 - Reputation score tracked on-chain
 - Attestations from other agents
 - Benchmark scores for performance verification
 
-**Contract:** `0x59f18816D6F3E15f3a4B41c73810e7DDF50D1a1F` (Mantle Sepolia)
+**Agent Registry:** `0x59f18816D6F3E15f3a4B41c73810e7DDF50D1a1F` (Mantle Sepolia)
+**Swap Contract:** `0x3B7FF2dDA45e9f4E323A6a049E366248468c2e78` (Mantle Sepolia)
 
 ### Natural Language Commands
 ```
-swap 100 MNT for USDC    → Execute token swap
-balance                  → Show wallet balances  
-yield                    → Compare DeFi yields
-register agent           → Register on-chain identity
+swap 100 MNT for USDC    → Execute token swap (via 1inch Fusion)
+balance                   → Show wallet balances
+yield                    → Compare DeFi yields (Agni Finance, Merchant Moe)
+leaderboard              → Show agent rankings
+register agent <name>   → Register on-chain identity
 benchmark dex_arbitrage  → Record performance score
 help                     → Show all commands
 ```
 
 ### DeFi Integration
 - **1inch Fusion API** — Aggregated swaps across all Mantle DEXs
-- **Mantle Sepolia** — Testnet for demo (no real money)
-- **Mantle Mainnet** — Real execution with full gas
+- **Agni Finance** — Real yield data
+- **Merchant Moe** — LP opportunities
+- **Mantle Sepolia** — Testnet (no real money, no risk)
+- **Mantle Mainnet** — Real execution with gas
 
 ## Technical Architecture
 
-### Smart Contracts
-| Contract | Address | Points |
-|----------|---------|--------|
-| MantlicAgentRegistry | 0x59f1...1a1F | 12 (Bazaar) |
-| Benchmarking | included | 10 (Innovation) |
-| MantlicSwap | TBD | 15 (Technical) |
+### Smart Contracts — DEPLOYED
+| Contract | Address | Network | Points |
+|----------|---------|---------|--------|
+| MantlicAgentRegistry | `0x59f18816D6F3E15f3a4B41c73810e7DDF50D1a1F` | Mantle Sepolia | 12 (Bazaar) |
+| Benchmarking | (in Registry) | Mantle Sepolia | 10 (Innovation) |
+| MantlicSwap | `0x3B7FF2dDA45e9f4E323A6a049E366248468c2e78 | Mantle Sepolia | 15 (Technical) |
+
+**Total: 37 pts** — verifiable on-chain
 
 ### Frontend
-- Next.js 16 + React 19
-- wagmi v2 + RainbowKit
-- Three.js particle background
-- GSAP animations
-- @ai-sdk/deepseek for AI chat
+- Next.js 16 + React 19 + Tailwind CSS v4
+- wagmi v2 + RainbowKit + viem
+- Three.js particle background (subtle, performant)
+- GSAP animations (scroll-triggered, micro-interactions)
+- DeepSeek AI chat
 
 ### Agent Memory
-Stored locally per wallet address:
+Stored per wallet address:
 - Interaction history
 - Command preferences
 - Custom strategies
@@ -54,19 +63,43 @@ Stored locally per wallet address:
 
 ## Demo Flow
 1. Connect wallet (MetaMask/Coinbase/WalletConnect)
-2. Type commands in terminal
-3. Watch on-chain execution
-4. Share referral link
+2. Type natural language command
+3. Watch on-chain execution or data retrieval
+4. Share results via TradeCard
+
+## Key Differentiators
+
+### 1. ERC-8004 On-Chain Agent Identity
+Not just a username — a real blockchain NFT. Juries can verify:
+- Agent registration event on Mantle Sepolia Explorer
+- Benchmark scores recorded immutably
+- Reputation tracked on-chain
+
+### 2. Natural Language to DeFi
+No clicking through DEX UIs. Type "swap 100 MNT for USDC" → done.
+
+### 3. Viral Consumer UX
+- Shareable TradeCards after every swap
+- Agent Leaderboard with rankings
+- Referral tracking
+
+### 4. Three.js + GSAP UI
+Award-worthy animations that don't sacrifice performance.
+
+## Judge Notes
+- 37 pts verifiable on-chain (not mock)
+- ERC-8004 = genuinely unique in hackathon context
+- DeepSeek AI = working natural language
+- TradeCard = viral/consumer angle for Track 4
 
 ## Submission Links
 - **Live App:** https://mantlic.vercel.app
 - **GitHub:** https://github.com/cryptoriot666/mantlic
-- **Demo Video:** [YouTube link]
-- **Contract:** 0x59f18816D6F3E15f3a4B41c73810e7DDF50D1a1F
+- **Agent Registry:** https://explorer.sepolia.mantle.xyz/address/0x59f18816D6F3E15f3a4B41c73810e7DDF50D1a1F
+- **Swap Contract:** https://explorer.sepolia.mantle.xyz/address/0x3B7FF2dDA45e9f4E323A6a049E366248468c2e78
+- **Demo Video:** [RECORD & UPLOAD TO YOUTUBE]
 
-## Judge Notes
-- 37 pts total (12 + 10 + 15)
-- ERC-8004 agent identity = real blockchain, not mock
-- Benchmarking = on-chain performance verification
-- Natural language = AI agent capability
-- GSAP + Three.js = award-worthy UI
+## Contract Verification
+1. Open https://explorer.sepolia.mantle.xyz
+2. Paste `0x59f18816D6F3E15f3a4B41c73810e7DDF50D1a1F`
+3. See: AgentRegistered events, BenchmarkRecorded events, reputation updates
