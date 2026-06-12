@@ -14,7 +14,7 @@ export const mantle = {
 export const mantleSepolia = {
   id: 5003, name: 'Mantle Sepolia', nativeCurrency: { name: 'MNT', symbol: 'MNT', decimals: 18 },
   rpcUrls: { default: { http: ['https://rpc.sepolia.mantle.xyz'] }, public: { http: ['https://rpc.sepolia.mantle.xyz'] } },
-  blockExplorers: { etherscan: { name: 'Mantle Testnet Explorer', url: 'https://explorer.sepolia.mantle.xyz' }, default: { name: 'Mantle Testnet Explorer', url: 'https://explorer.sepolia.mantle.xyz' } },
+  blockExplorers: { etherscan: { name: 'Mantle Testnet Explorer', url: 'https://sepolia.mantlescan.xyz' }, default: { name: 'Mantle Testnet Explorer', url: 'https://sepolia.mantlescan.xyz' } },
   contracts: { multicall3: { address: '0xcA11bde05977b3631167028862bE2a173976CA11' as const } },
 } as const
 

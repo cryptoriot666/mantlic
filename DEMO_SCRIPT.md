@@ -5,7 +5,7 @@
 1. Open https://mantlic.vercel.app
 2. Open MetaMask, connect wallet
 3. Open Remix IDE with MantlicAgentRegistry loaded
-4. Open Mantle Sepolia Explorer
+4. Open Mantle Sepolia Explorer: https://sepolia.mantlescan.xyz
 
 ### SCENE 1: The Interface (20 sec)
 - Point camera at the landing page

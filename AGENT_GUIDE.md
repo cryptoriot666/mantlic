@@ -43,7 +43,7 @@ help                     → Show all commands
 |----------|---------|---------|--------|
 | MantlicAgentRegistry | `0x59f18816D6F3E15f3a4B41c73810e7DDF50D1a1F` | Mantle Sepolia | 12 (Bazaar) |
 | Benchmarking | (in Registry) | Mantle Sepolia | 10 (Innovation) |
-| MantlicSwap | `0x3B7FF2dDA45e9f4E323A6a049E366248468c2e78 | Mantle Sepolia | 15 (Technical) |
+|| MantlicSwap | `0x3B7FF2dDA45e9f4E323A6a049E366248468c2e78` | Mantle Sepolia | 15 (Technical) |
 
 **Total: 37 pts** — verifiable on-chain
 
@@ -95,11 +95,11 @@ Award-worthy animations that don't sacrifice performance.
 ## Submission Links
 - **Live App:** https://mantlic.vercel.app
 - **GitHub:** https://github.com/cryptoriot666/mantlic
-- **Agent Registry:** https://explorer.sepolia.mantle.xyz/address/0x59f18816D6F3E15f3a4B41c73810e7DDF50D1a1F
-- **Swap Contract:** https://explorer.sepolia.mantle.xyz/address/0x3B7FF2dDA45e9f4E323A6a049E366248468c2e78
-- **Demo Video:** [RECORD & UPLOAD TO YOUTUBE]
+- **Agent Registry:** https://sepolia.mantlescan.xyz/address/0x59f18816D6F3E15f3a4B41c73810e7DDF50D1a1F
+- **Swap Contract:** https://sepolia.mantlescan.xyz/address/0x3B7FF2dDA45e9f4E323A6a049E366248468c2e78
+- **Demo Video:** Record a 2-minute demo using OBS or Loom (1080p minimum), export as MP4, upload to YouTube (unlisted works), paste the YouTube link
 
 ## Contract Verification
-1. Open https://explorer.sepolia.mantle.xyz
+1. Open https://sepolia.mantlescan.xyz
 2. Paste `0x59f18816D6F3E15f3a4B41c73810e7DDF50D1a1F`
 3. See: AgentRegistered events, BenchmarkRecorded events, reputation updates

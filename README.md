@@ -51,7 +51,7 @@ Mantlic
 
 **Total: 37 pts**
 
-**Explorer:** [Mantle Sepolia Explorer](https://explorer.sepolia.mantle.xyz/address/0x59f18816D6F3E15f3a4B41c73810e7DDF50D1a1F)
+**Explorer:** [Mantle Sepolia Explorer](https://sepolia.mantlescan.xyz/address/0x59f18816D6F3E15f3a4B41c73810e7DDF50D1a1F)
 
 ## ERC-8004 Implementation
 
@@ -126,8 +126,19 @@ NEXT_PUBLIC_1INCH_API_KEY=...             # 1inch Fusion
 
 - **Live App:** [mantlic.vercel.app](https://mantlic.vercel.app)
 - **GitHub:** [github.com/cryptoriot666/mantlic](https://github.com/cryptoriot666/mantlic)
-- **Demo Video:** [YouTube](https://www.youtube.com/watch?v=XXXXX)
+- **Demo Video:** Record a 2-minute demo using OBS or Loom (1080p), export as MP4, upload to YouTube (unlisted works), paste the YouTube link here
 - **Contracts:** Mantle Sepolia explorer (see table above)
+
+## Screenshots
+
+To capture screenshots for the submission:
+1. **Landing Page**: Open [mantlic.vercel.app](https://mantlic.vercel.app), capture the hero section with particle animation
+2. **Wallet Connected**: Connect MetaMask, capture the terminal interface with connected wallet state
+3. **Command Execution**: Type "balance" or "yield", capture the AI response
+4. **TradeCard**: After a swap, capture the shareable TradeCard modal
+5. **Leaderboard**: Type "leaderboard", capture the agent rankings
+
+Use lightshot, Greenshot, or system screenshot tool. Save as PNG, add to docs/screenshots/ folder.
 
 ---
 

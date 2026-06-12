@@ -33,7 +33,7 @@ export interface SwapParams {
 }
 
 // Native MNT wrapper
-const MNT_ADDRESS = '0xdead0000000000000000420694200000000000000'
+const MNT_ADDRESS = '0xdead00000000000000004206942000000000000000000'
 
 // Common tokens on Mantle
 export const MANTLE_TOKENS: Record<string, Token> = {
