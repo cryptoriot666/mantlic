@@ -20,11 +20,11 @@
 See [docs/GITHUB_VERIFICATION.md](https://github.com/cryptoriot666/mantlic/blob/master/docs/GITHUB_VERIFICATION.md) for complete judge verification guide.
 
 ### Live Demo
-https://mantlic-2eecwgmju-the-riot-s-projects.vercel.app
+https://mantlic.vercel.app
 
 ### On-Chain Contracts
-- Agent Registry: 0x59f18816D6F3E15f3a4B41c73810e7DDF50D1a1F
-- Swap: 0x3B7FF2dDA45e9f4E323A6a049E366248468c2e78
+- Agent Registry: 0xbA7a32f1d19e10f6Aa47aBA168bE5aBD7aEF4349
+- Swap: 0x46da6883626f51c500c662f7B934FA7DD0abE105
 
 ### Tech Stack
 - Next.js 16.2.7 | React 19.2.4 | wagmi v2.19.5 | viem 2.52.2
