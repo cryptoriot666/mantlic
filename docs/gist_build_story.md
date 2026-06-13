@@ -19,11 +19,11 @@ DeFi is powerful but confusing. Multiple UIs, gas optimization, slippage toleran
 - Mantle Sepolia testnet
 
 ## Contract Addresses
-- Agent Registry: `0x59f18816D6F3E15f3a4B41c73810e7DDF50D1a1F`
-- Mantle Sepolia: https://sepolia.mantlescan.xyz/address/0x59f18816D6F3E15f3a4B41c73810e7DDF50D1a1F
+- Agent Registry: `0xbA7a32f1d19e10f6Aa47aBA168bE5aBD7aEF4349`
+- Mantle Sepolia: https://sepolia.mantlescan.xyz/address/0xbA7a32f1d19e10f6Aa47aBA168bE5aBD7aEF4349
 
 ## Links
-- Live App: https://mantlic-2eecwgmju-the-riot-s-projects.vercel.app
+- Live App: https://mantlic.vercel.app
 - GitHub: https://github.com/cryptoriot666/mantlic
 
 ## Key Insight

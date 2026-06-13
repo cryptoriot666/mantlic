@@ -28,6 +28,6 @@ Low fees + fast finality = DeFi that feels like CeFi.
 Built in 72 hours. Learned that terminal-only UX is actually a feature for Track 4 (Consumer & Viral DApps) because it creates shareable moments.
 
 ## Links
-- Live: https://mantlic-2eecwgmju-the-riot-s-projects.vercel.app
+- Live: https://mantlic.vercel.app
 - GitHub: https://github.com/cryptoriot666/mantlic
-- Agent Registry: https://sepolia.mantlescan.xyz/address/0x59f18816D6F3E15f3a4B41c73810e7DDF50D1a1F
+- Agent Registry: https://sepolia.mantlescan.xyz/address/0xbA7a32f1d19e10f6Aa47aBA168bE5aBD7aEF4349
