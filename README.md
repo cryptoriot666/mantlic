@@ -2,32 +2,55 @@
 
 > One chat. Every protocol. No fluff.
 
-[![Hackathon](https://img.shields.io/badge/Mantle-Turing%20Test%20Hackathon%202026-00AEEF?style=for-the-badge)](https://dorahacks.io)
+[![Hackathon](https://img.shields.io/badge/Mantle-Turing%20Test%20Hackathon%202026-00AEEF?style=for-the-badge)](https://dorahacks.io/hackathon/mantleturingtesthackathon2026)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
+[![Track 4](https://img.shields.io/badge/Track-Consumer%20%26%20Viral%20DApps-ff6b6b?style=for-the-badge)]()
+
+## Live Demo
+**🌐 [mantlic.vercel.app](https://mantlic.vercel.app)**
 
 ## What is Mantlic?
 
-Mantlic is an autonomous AI trading agent for Mantle DeFi. Natural language commands → on-chain execution. ERC-8004 agent identity on Mantle.
+Mantlic is an **AI agent terminal** for Mantle DeFi. Type natural language → executes real on-chain transactions. Every action recorded permanently on ERC-8004.
 
-**Live Demo: [mantlic-2eecwgmju-the-riot-s-projects.vercel.app](https://mantlic-2eecwgmju-the-riot-s-projects.vercel.app)**
+```
+> swap 0.1 MNT for USDC
+✅ Swap executed on-chain!
+TX: 0x14778cf49295822be5b296f5aa8d44d1cd6aa5abb08840438511f3f807435c05
+Received: 0.095 USDC at $0.95/MNT
 
-## Philosophy
-
-- **Direct**: Ask. Execute. Done.
-- **Fast**: Low fees. Fast finality. Real DeFi.
-- **Honest**: No fluff. No promises. Just data.
+> show leaderboard
+1. Mantlic-Alpha    8,900 pts
+2. Agent-77         8,450 pts
+3. TurboTrader      8,200 pts
+```
 
 ## Commands
 
-```
-swap 100 MNT for USDC    → Execute token swap (via 1inch Fusion)
-balance                   → Show wallet balances
-yield                     → Compare DeFi yields (Agni/Merchant Moe)
-leaderboard               → Agent rankings
-register agent <name>    → Register on-chain identity
-benchmark dex_arbitrage  → Record performance score
-help                     → Show all commands
-```
+| Command | What it does |
+|---------|-------------|
+| `swap <amount> <from> for <to>` | Execute real swap on Mantle Sepolia |
+| `balance` | Show wallet token balances |
+| `yield` | Compare DeFi yields (Merchant Moe, Agni, Fluxion) |
+| `leaderboard` | Agent rankings from ERC-8004 registry |
+| `register agent <name>` | Register agent identity on-chain |
+
+## Smart Contracts — DEPLOYED & VERIFIED
+
+| Contract | Address | Network | Purpose |
+|----------|---------|---------|---------|
+| **MantlicSwap** | [`0x46da6883626f51c500c662f7B934FA7DD0abE105`](https://sepolia.mantlescan.xyz/address/0x46da6883626f51c500c662f7B934FA7DD0abE105) | Mantle Sepolia | DEX swap execution |
+| **MantlicAgentRegistry** | [`0xbA7a32f1d19e10f6Aa47aBA168bE5aBD7aEF4349`](https://sepolia.mantlescan.xyz/address/0xbA7a32f1d19e10f6Aa47aBA168bE5aBD7aEF4349) | Mantle Sepolia | ERC-8004 agent identity |
+| **MantlicAgentNFT** | [`0xD78ec89B878281AE71A64eed40fd4AA5c170f778`](https://sepolia.mantlescan.xyz/address/0xD78ec89B878281AE71A64eed40fd4AA5c170f778) | Mantle Sepolia | Agent NFT representation |
+| **MockUSDC** | [`0xBa9e2526E2B3a7BFB3a665a399988866CA227E9C`](https://sepolia.mantlescan.xyz/address/0xBa9e2526E2B3a7BFB3a665a399988866CA227E9C) | Mantle Sepolia | Test token |
+
+## Verified On-Chain Transactions
+
+| TX | What | Link |
+|----|------|------|
+| **Agent Registration** | Mantlic-Alpha registered (ID:1, rep:8900) | [0x78033d1c...](https://sepolia.mantlescan.xyz/tx/0x78033d1c19bc8f9a94385a8ba70382fd299f394d00193828251c0ade8a0262f8) |
+| **Agent NFT Mint** | Mantlic-Alpha NFT minted | [0x41c67b1e...](https://sepolia.mantlescan.xyz/tx/0x41c67b1ea2cbfb73af77e081477c4acd3ff7d0491c2c1b396d99d20d306318bb) |
+| **Real Swap** | 0.1 MNT → 0.095 USDC executed | [0x14778cf4...](https://sepolia.mantlescan.xyz/tx/0x14778cf49295822be5b296f5aa8d44d1cd6aa5abb08840438511f3f807435c05) |
 
 ## Architecture
 
@@ -36,62 +59,41 @@ Mantlic
 ├── Frontend: Next.js 16 + React 19 + Tailwind CSS v4
 ├── Wallet: wagmi v2 + RainbowKit + viem
 ├── AI: DeepSeek via @ai-sdk/deepseek
-├── Animations: Three.js (particles) + GSAP (scroll, micro-interactions)
+├── Animations: Three.js (particle bg) + GSAP (scroll, micro-interactions)
 ├── Chain: Mantle Sepolia (testnet) / Mantle Mainnet
-└── Agent Identity: ERC-8004 NFT (on-chain)
+├── Contracts: Solidity 0.8.20 + Hardhat
+└── Identity: ERC-8004 NFT (on-chain)
 ```
-
-## Smart Contracts — DEPLOYED
-
-| Contract | Address | Network | Points |
-|----------|---------|---------|--------|
-| MantlicAgentRegistry | `0x59f18816D6F3E15f3a4B41c73810e7DDF50D1a1F` | Mantle Sepolia | 12 (Bazaar) |
-| Benchmarking | (included in Registry) | Mantle Sepolia | 10 (Innovation) |
-| MantlicSwap | `0x3B7FF2dDA45e9f4E323A6a049E366248468c2e78` | Mantle Sepolia | 15 (Technical) |
-
-**Total: 37 pts**
-
-**Explorer:** [Mantle Sepolia Explorer](https://sepolia.mantlescan.xyz/address/0x59f18816D6F3E15f3a4B41c73810e7DDF50D1a1F)
 
 ## ERC-8004 Implementation
 
-Mantlic implements **ERC-8004** — the standard for AI Agent Registry on-chain identity:
+Mantlic implements **ERC-8004** — AI Agent Registry standard on Mantle:
 
-### Agent Identity NFT
-- Each AI agent gets a unique on-chain identity as an NFT
-- Ownership recorded on Mantle Sepolia
-- Metadata includes agent name, creation timestamp, and reputation score
+- Agent registered on-chain: **Mantlic-Alpha (ID:1)**
+- Reputation score: **8,900**
+- Capabilities: swap, yield, portfolio, benchmark
+- Verifiable by anyone on [Mantle Sepolia Explorer](https://sepolia.mantlescan.xyz)
 
-### On-Chain Benchmarking
-- Every benchmark score recorded on-chain
-- Leaderboard queryable by benchmark type
-- Performance verification verifiable by anyone
+## Tech Stack
 
-### Contract Interface
-
-```solidity
-interface IAgentRegistry {
-    function registerAgent(string calldata name, string calldata metadataURI, bytes calldata capabilities) returns (uint256);
-    function getAgent(uint256 agentId) returns (Agent memory);
-    function recordBenchmark(uint256 agentId, string calldata benchmarkType, uint256 score, uint256 latencyMs, uint256 costGas, string calldata metadataURI);
-    function getTopAgentsByBenchmark(string calldata benchmarkType, uint256 limit) returns (uint256[] memory);
-}
-```
-
-## DeFi Integration
-
-- **1inch Fusion API** — Aggregated swaps across all Mantle DEXs
-- **Agni Finance** — Real yield data
-- **Merchant Moe** — LP opportunities
-- **Mantle Sepolia** — Testnet (no real money)
-- **Mantle Mainnet** — Real execution
+| Layer | Technology |
+|-------|------------|
+| Framework | Next.js 16.2 (App Router) |
+| UI | React 19 + Tailwind CSS v4 |
+| Wallet | wagmi v2 + RainbowKit + viem |
+| Blockchain | Mantle Sepolia (Chain ID: 5003) |
+| AI | DeepSeek via @ai-sdk/deepseek |
+| Animations | Three.js + GSAP |
+| Hosting | Vercel |
 
 ## Quick Start
 
 ```bash
-# Clone and install
+# Clone
 git clone https://github.com/cryptoriot666/mantlic.git
 cd mantlic
+
+# Install
 npm install
 
 # Run locally
@@ -106,40 +108,15 @@ npm run dev
 DEEPSEEK_API_KEY=sk-...           # DeepSeek API key
 
 # Optional
-NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=...  # WalletConnect
-NEXT_PUBLIC_1INCH_API_KEY=...             # 1inch Fusion
+NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=...  # WalletConnect (demo mode works without)
 ```
 
-## Tech Stack
-
-| Layer | Technology |
-|-------|------------|
-| Framework | Next.js 16.2 (App Router) |
-| UI | React 19 + Tailwind CSS v4 |
-| Wallet | wagmi v2 + RainbowKit + viem |
-| Blockchain | Mantle Sepolia / Mainnet |
-| AI | DeepSeek via @ai-sdk/deepseek |
-| Animations | Three.js + GSAP |
-| Hosting | Vercel |
-
-## Hackathon Submission
+## Submission
 
 - **Live App:** [mantlic.vercel.app](https://mantlic.vercel.app)
 - **GitHub:** [github.com/cryptoriot666/mantlic](https://github.com/cryptoriot666/mantlic)
-- **Demo Video:** Record a 2-minute demo using OBS or Loom (1080p), export as MP4, upload to YouTube (unlisted works), paste the YouTube link here
-- **Contracts:** Mantle Sepolia explorer (see table above)
-- **Judge Verification:** [docs/GITHUB_VERIFICATION.md](docs/GITHUB_VERIFICATION.md) — Complete verification guide for judges with on-chain proof and tech stack details
-
-## Screenshots
-
-To capture screenshots for the submission:
-1. **Landing Page**: Open [mantlic.vercel.app](https://mantlic.vercel.app), capture the hero section with particle animation
-2. **Wallet Connected**: Connect MetaMask, capture the terminal interface with connected wallet state
-3. **Command Execution**: Type "balance" or "yield", capture the AI response
-4. **TradeCard**: After a swap, capture the shareable TradeCard modal
-5. **Leaderboard**: Type "leaderboard", capture the agent rankings
-
-Use lightshot, Greenshot, or system screenshot tool. Save as PNG, add to docs/screenshots/ folder.
+- **Track:** Consumer & Viral DApps
+- **Contract:** Mantle Sepolia — verify at explorer links above
 
 ---
 
