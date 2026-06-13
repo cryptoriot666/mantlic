@@ -11,7 +11,6 @@ pragma solidity ^0.8.20;
  */
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
@@ -68,8 +67,6 @@ struct SwapResult {
  * @dev Main swap execution contract
  */
 contract MantlicSwap is ISwapExecutor, ReentrancyGuard, Ownable {
-    using SafeERC20 for IERC20;
-
     // State
     address public feeRecipient;
     uint256 public feeBps; // Basis points (100 = 1%)
@@ -100,6 +97,9 @@ contract MantlicSwap is ISwapExecutor, ReentrancyGuard, Ownable {
     event ExecutorAuthorized(address indexed executor, bool authorized);
     event TokenSupported(address indexed token, bool supported);
 
+    /** Receives native MNT for liquidity */    
+    receive() external payable {}
+    
     /**
      * @dev Constructor
      * @param _feeRecipient Address to receive fees
@@ -132,7 +132,7 @@ contract MantlicSwap is ISwapExecutor, ReentrancyGuard, Ownable {
         bytes calldata data
     ) external payable override nonReentrant returns (uint256 amountOut) {
         require(amountIn > 0, "Amount must be positive");
-        require(tokenIn != tokenOut, "Same token");
+        require(tokenIn != tokenOut, "Same token (use getQuote for self-swap)"); // Original: no self-swap
         
         // For demo: simulate swap with price feed
         // In production: integrate with 1inch, Camelot, or other DEX aggregators
@@ -142,32 +142,48 @@ contract MantlicSwap is ISwapExecutor, ReentrancyGuard, Ownable {
         
         // Handle token transfers
         if (tokenIn == address(0)) {
-            // Native MNT
-            require(msg.value >= amountIn, "Insufficient MNT sent");
-            if (msg.value > amountIn) {
-                payable(msg.sender).transfer(msg.value - amountIn);
-            }
+            // Native MNT - msg.value already received by payable function
         } else {
-            // ERC-20
-            IERC20(tokenIn).safeTransferFrom(msg.sender, address(this), amountIn);
-        }
-        
-        // Execute output transfer
-        if (tokenOut == address(0)) {
-            // Native MNT
-            payable(msg.sender).transfer(expectedOut);
-        } else {
-            // ERC-20
-            IERC20(tokenOut).safeTransfer(msg.sender, expectedOut);
+            // ERC-20 - use low-level call for better error visibility
+            (bool success, bytes memory retData) = tokenIn.call(
+                abi.encodeWithSignature("transferFrom(address,address,uint256)", msg.sender, address(this), amountIn)
+            );
+            require(success && (retData.length == 0 || abi.decode(retData, (bool))), "Input token transfer failed");
         }
         
         // Apply fee
         uint256 fee = (expectedOut * feeBps) / 10000;
+        uint256 netOut = expectedOut - fee;
+        
+        // Execute output transfer
+        if (tokenOut == address(0)) {
+            (bool success, ) = payable(msg.sender).call{value: netOut}("");
+            require(success, "MNT transfer failed");
+        } else {
+            // ERC-20 - use low-level call
+            (bool outSuccess, bytes memory outData) = tokenOut.call(
+                abi.encodeWithSignature("transfer(address,uint256)", msg.sender, netOut)
+            );
+            require(outSuccess && (outData.length == 0 || abi.decode(outData, (bool))), "Output token transfer failed");
+        }
+        
         if (fee > 0) {
             if (tokenOut == address(0)) {
-                payable(feeRecipient).transfer(fee);
+                (bool success, ) = payable(feeRecipient).call{value: fee}("");
+                if (!success) {
+                    (bool usr, ) = payable(msg.sender).call{value: fee}("");
+                    require(usr, "Fee transfer failed");
+                }
             } else {
-                IERC20(tokenOut).safeTransfer(feeRecipient, fee);
+                (bool feeSuccess, ) = tokenOut.call(
+                    abi.encodeWithSignature("transfer(address,uint256)", feeRecipient, fee)
+                );
+                if (!feeSuccess) {
+                    (bool usr, ) = tokenOut.call(
+                        abi.encodeWithSignature("transfer(address,uint256)", msg.sender, fee)
+                    );
+                    require(usr, "Fee transfer failed");
+                }
             }
         }
         
@@ -223,7 +239,10 @@ contract MantlicSwap is ISwapExecutor, ReentrancyGuard, Ownable {
         if (request.tokenIn == address(0)) {
             require(msg.value >= request.amountIn, "Insufficient MNT");
         } else {
-            IERC20(request.tokenIn).safeTransferFrom(request.user, address(this), request.amountIn);
+            (bool success, ) = request.tokenIn.call(
+                abi.encodeWithSignature("transferFrom(address,address,uint256)", request.user, address(this), request.amountIn)
+            );
+            require(success, "Input transfer failed");
         }
         
         // Execute swap
@@ -268,9 +287,13 @@ contract MantlicSwap is ISwapExecutor, ReentrancyGuard, Ownable {
         uint256 expectedOut
     ) external returns (uint256) {
         if (tokenOut == address(0)) {
-            payable(msg.sender).transfer(expectedOut);
+            (bool success, ) = payable(msg.sender).call{value: expectedOut}("");
+            require(success, "MNT transfer failed");
         } else {
-            IERC20(tokenOut).safeTransfer(msg.sender, expectedOut);
+            (bool success, ) = tokenOut.call(
+                abi.encodeWithSignature("transfer(address,uint256)", msg.sender, expectedOut)
+            );
+            require(success, "Output transfer failed");
         }
         return expectedOut;
     }
@@ -397,7 +420,10 @@ contract MantlicSwap is ISwapExecutor, ReentrancyGuard, Ownable {
         if (token == address(0)) {
             payable(owner()).transfer(amount);
         } else {
-            IERC20(token).safeTransfer(owner(), amount);
+            (bool success, ) = token.call(
+                abi.encodeWithSignature("transfer(address,uint256)", owner(), amount)
+            );
+            require(success, "Rescue transfer failed");
         }
     }
 

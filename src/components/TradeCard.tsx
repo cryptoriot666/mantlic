@@ -29,9 +29,13 @@ export function TradeCard({ fromToken, toToken, fromAmount, toAmount, price, cha
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`, '_blank')
   }
   
+  const shareTelegram = () => {
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`, '_blank')
+  }
+  
   const viewOnExplorer = () => {
     if (txHash) {
-      window.open(`https://explorer.sepolia.mantle.xyz/tx/${txHash}`, '_blank')
+      window.open(`https://sepolia.mantlescan.xyz/tx/${txHash}`, '_blank')
     }
   }
   
@@ -89,7 +93,10 @@ export function TradeCard({ fromToken, toToken, fromAmount, toAmount, price, cha
           {copied ? 'COPIED!' : 'COPY'}
         </button>
         <button onClick={shareTwitter} className="flex-1 btn-glow bg-[#1DA1F2]/10 border border-[#1DA1F2]/30 text-[#1DA1F2] py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 hover:bg-[#1DA1F2]/20 transition-colors">
-          <X className="w-3 h-3" /> SHARE
+          <X className="w-3 h-3" /> X
+        </button>
+        <button onClick={shareTelegram} className="flex-1 btn-glow bg-[#26A5E4]/10 border border-[#26A5E4]/30 text-[#26A5E4] py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 hover:bg-[#26A5E4]/20 transition-colors">
+          TG
         </button>
       </div>
     </div>

@@ -6,7 +6,8 @@ import { Terminal, Send, Bot, User, Activity, Loader2, Zap, Menu, X } from 'luci
 import { useAgentMemory } from '../hooks/useAgentMemory'
 import { parseCommand } from '../commands/parser'
 import { ViralCard } from '../components/ViralCard'
-import { DemoTradeCard } from '../components/TradeCard'
+import { TradeCard } from '../components/TradeCard'
+import { SwapCard } from '../components/SwapCard'
 import { CompactLeaderboard } from '../components/Leaderboard'
 
 interface Message {
@@ -33,6 +34,9 @@ export default function Home() {
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [recentSwap, setRecentSwap] = useState<{
+    fromToken: string; toToken: string; fromAmount: string; toAmount: string; price: string; txHash: string; status: string
+  } | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   
   // Auto-scroll
@@ -253,13 +257,44 @@ export default function Home() {
             </div>
           </div>
           
-          {/* Demo Trade */}
-          <div className="p-4 border-b border-[#00ff88]/10 bg-gradient-to-r from-transparent to-[#0a0a0f]/50">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-mono text-gray-500">EXAMPLE SWAP</span>
+          {/* Swap Card */}
+          {isConnected && (
+            <div className="p-4 border-b border-[#00ff88]/10 bg-gradient-to-r from-transparent to-[#0a0a0f]/50">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-mono text-gray-500">SWAP</span>
+              </div>
+              <SwapCard onSwapComplete={(result) => {
+                setRecentSwap({
+                  fromToken: result.fromToken,
+                  toToken: result.toToken,
+                  fromAmount: result.fromAmount,
+                  toAmount: result.toAmount,
+                  price: result.price,
+                  txHash: result.txHash,
+                  status: result.status,
+                })
+              }} />
             </div>
-            <DemoTradeCard />
-          </div>
+          )}
+          
+          {/* Recent Swap Result */}
+          {recentSwap && (
+            <div className="p-4 border-b border-[#00ff88]/10 bg-gradient-to-r from-transparent to-[#0a0a0f]/50">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-mono text-[#00ff88]">RECENT SWAP</span>
+                <span className="text-xs font-mono text-gray-500">✓ On-chain</span>
+              </div>
+              <TradeCard
+                fromToken={recentSwap.fromToken}
+                toToken={recentSwap.toToken}
+                fromAmount={recentSwap.fromAmount}
+                toAmount={recentSwap.toAmount}
+                price={recentSwap.price}
+                change="up"
+                txHash={recentSwap.txHash}
+              />
+            </div>
+          )}
           
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
