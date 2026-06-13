@@ -96,7 +96,7 @@ Award-worthy animations that don't sacrifice performance.
 - **Live App:** https://mantlic.vercel.app
 - **GitHub:** https://github.com/cryptoriot666/mantlic
 - **Agent Registry:** https://sepolia.mantlescan.xyz/address/0xbA7a32f1d19e10f6Aa47aBA168bE5aBD7aEF4349
-- **Swap Contract:** https://sepolia.mantlescan.xyz/address/0x3B7FF2dDA45e9f4E323A6a049E366248468c2e78
+- **Swap Contract:** https://sepolia.mantlescan.xyz/address/0x46da6883626f51c500c662f7B934FA7DD0abE105
 - **Demo Video:** Record a 2-minute demo using OBS or Loom (1080p minimum), export as MP4, upload to YouTube (unlisted works), paste the YouTube link
 
 ## Contract Verification

@@ -17,7 +17,7 @@ Mantlic is an autonomous AI trading agent for Mantle DeFi. Type natural language
 ## Contract Verification (Direct Links)
 
 ### 1. Agent Registry (ERC-8004) — 12 pts + 10 pts
-**https://sepolia.mantlescan.xyz/address/0x59f18816D6F3E15f3a4B41c73810e7DDF50D1a1F**
+**https://sepolia.mantlescan.xyz/address/0xbA7a32f1d19e10f6Aa47aBA168bE5aBD7aEF4349**
 
 What you'll see:
 - Contract deployed and verified
@@ -26,7 +26,7 @@ What you'll see:
 - Reputation score updates
 
 ### 2. Swap Contract — 15 pts
-**https://sepolia.mantlescan.xyz/address/0x3B7FF2dDA45e9f4E323A6a049E366248468c2e78**
+**https://sepolia.mantlescan.xyz/address/0x46da6883626f51c500c662f7B934FA7DD0abE105**
 
 What you'll see:
 - Contract deployed and verified
@@ -52,19 +52,19 @@ What you'll see:
 ## How to Verify (Step by Step)
 
 ### Step 1: Verify Agent Registry (30 seconds)
-1. Open: https://sepolia.mantlescan.xyz/address/0x59f18816D6F3E15f3a4B41c73810e7DDF50D1a1F
+1. Open: https://sepolia.mantlescan.xyz/address/0xbA7a32f1d19e10f6Aa47aBA168bE5aBD7aEF4349
 2. Click "Contract" tab → confirm code is verified
 3. Click "Txn Logs" tab → see AgentRegistered and BenchmarkRecorded events
 4. Done: 22 pts verified
 
 ### Step 2: Verify Swap Contract (15 seconds)
-1. Open: https://sepolia.mantlescan.xyz/address/0x3B7FF2dDA45e9f4E323A6a049E366248468c2e78
+1. Open: https://sepolia.mantlescan.xyz/address/0x46da6883626f51c500c662f7B934FA7DD0abE105
 2. Click "Contract" tab → confirm code is verified
 3. Click "Txn Logs" tab → see swap execution transactions
 4. Done: 15 pts verified
 
 ### Step 3: Test the App (30 seconds)
-1. Open: https://mantlic-2eecwgmju-the-riot-s-projects.vercel.app
+1. Open: https://mantlic.vercel.app
 2. Click "Connect Wallet" → connect MetaMask (ensure Mantle Sepolia network)
 3. Type "help" → see all available commands
 4. Type "balance" → see wallet balances

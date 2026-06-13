@@ -30,7 +30,7 @@ Your DeFi commands:
 • /help - All commands
 
 🌐 Web App: https://mantlic.vercel.app
-📊 Agent Registry: 0x59f18816D6F3E15f3a4B41c73810e7DDF50D1a1F`)
+📊 Agent Registry: 0xbA7a32f1d19e10f6Aa47aBA168bE5aBD7aEF4349`)
     return
   }
   
@@ -46,7 +46,7 @@ Commands in web app:
 • yield
 • register agent <name>
 
-Contract: 0x3B7FF2dDA45e9f4E323A6a049E366248468c2e78`)
+Contract: 0x46da6883626f51c500c662f7B934FA7DD0abE105`)
     return
   }
   
