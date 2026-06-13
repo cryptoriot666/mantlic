@@ -22,7 +22,7 @@ Key highlights:
 🔹 Three.js + GSAP for an award-worthy immersive UI
 🔹 Deployed on Mantle Sepolia — verifiable by anyone
 
-Live demo: https://mantlic-2eecwgmju-the-riot-s-projects.vercel.app
+Live demo: https://mantlic.vercel.app
 Verification doc: https://github.com/cryptoriot666/mantlic/blob/master/docs/GITHUB_VERIFICATION.md
 Code: https://github.com/cryptoriot666/mantlic
 ```

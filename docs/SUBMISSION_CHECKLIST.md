@@ -10,7 +10,7 @@ Mantlic is an autonomous AI trading agent for Mantle DeFi. Type natural language
 ---
 
 ## Live Demo
-**https://mantlic-2eecwgmju-the-riot-s-projects.vercel.app**
+**https://mantlic.vercel.app**
 
 ---
 
